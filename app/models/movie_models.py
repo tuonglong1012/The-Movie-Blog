@@ -22,3 +22,4 @@ class Movie(Base):
     members = Column(Integer)
     favorites = Column(Integer)
     created_at = Column(TIMESTAMP)
+    type = Column(String(50))  

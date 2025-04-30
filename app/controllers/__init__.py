@@ -1,0 +1,1 @@
+from app.controllers.movie_controller import import_movies
