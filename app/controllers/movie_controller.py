@@ -113,6 +113,3 @@ class TopanimeCraw1lSpider(scrapy.Spider):
             "test": test,
             # "producer": producer,
         }
-
-
-get_movie()
