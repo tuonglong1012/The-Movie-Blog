@@ -1,7 +1,27 @@
+# Byte-compiled / cache
 __pycache__/
-*.pyc
+*.py[cod]
+*.so
+
+# Environment files
 .env
-.idea/
+
+# VSCode, PyCharm settings
 .vscode/
+.idea/
+
+# SQLite or local DBs
 *.db
+
+# Log & data files
+*.log
+*.json
 data.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# venv or virtual environment
+venv/
+env/
