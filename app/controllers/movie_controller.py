@@ -3,14 +3,11 @@ from scrapy.crawler import CrawlerProcess
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..database import get_db
-from ..models import Movie,MovieDetail,Character,MovieReview,UserModel
-from ..schemas.movie_schemas import User
+from ..models import Movie,MovieDetail,Character,MovieReview
 import json
 import os
 
 router = APIRouter()
-
-
 
 def get_movie():
     process = CrawlerProcess(settings={
@@ -259,27 +256,3 @@ def get_review_by_id(db: Session, id: int):
 
 
 
-def get_all_movies(db: Session):
-    return db.query(Movie).all()
-
-
-def create_user(user: User, db: Session = Depends(get_db)):
-    # Check if the user already exists
-    existing_user = db.query(UserModel).filter(
-        UserModel.username == user.username).first()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="User already exists")
-
-    # Create a new user
-    new_user = UserModel(
-        id=user.id,
-        username=user.username,
-        age=user.age,
-        password=user.password,  # In production, hash the password before saving!
-        status=False
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    return new_user

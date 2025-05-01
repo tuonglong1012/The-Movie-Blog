@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from ..controllers.movie_controller import import_movies
 from ..database import get_db
 from ..controllers.movie_controller import get_movie 
-from ..schemas.movie_schemas import MovieOut,MovieDetailOut,CharacterOut,ReviewOut,User
-from ..controllers.movie_controller import get_all_movies,get_movie_by_id,get_character_by_id,get_review_by_id,create_user
+from ..schemas.movie_schemas import MovieOut,MovieDetailOut,CharacterOut,ReviewOut
+from ..controllers.movie_controller import get_all_movies,get_movie_by_id,get_character_by_id,get_review_by_id
 import requests
 from typing import List
 
@@ -55,14 +55,9 @@ def get_review(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Review not found")
     return review
 
-
-
 # [get]/api/movies
 @router.get("/movies", response_model=list[MovieOut])
 def list_movies(db: Session = Depends(get_db)):
     return get_all_movies(db)
 
 
-@router.post("/signup", response_model=User)
-def signup(user: User, db: Session = Depends(get_db)):
-    return create_user(user, db)

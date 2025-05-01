@@ -4,6 +4,7 @@ from ..database import Base
 
 class Movie(Base):
     __tablename__ = "movies"
+    
     id = Column(Integer, primary_key=True, index=True)
     external_id = Column(Integer)
     title = Column(String(255))
@@ -13,7 +14,6 @@ class Movie(Base):
     aired = Column(String(100))
     type = Column(String(50))  
     members = Column(String(50))
-
 
 class MovieDetail(Base):
     __tablename__ = 'movies_detail'
@@ -45,7 +45,6 @@ class MovieDetail(Base):
     members = Column(String)
     favorites = Column(String)
 
-
 class Character(Base):
     __tablename__ = 'movies_characters'
 
@@ -58,8 +57,6 @@ class Character(Base):
     voice_actor_link = Column(String)
     voice_actor_country = Column(String)
 
-
-
 class MovieReview(Base):
     __tablename__ = 'movies_reviews'
 
@@ -69,13 +66,3 @@ class MovieReview(Base):
     show_reviews = Column(String)  
     hidden_reviews = Column(String)  
 
-
-
-class UserModel(Base):
-    __tablename__ = 'account'
-
-    id = Column(Integer, primary_key=True)
-    username = Column(String, nullable=False)
-    age = Column(Integer)
-    password = Column(String, nullable=False)
-    status = Column(Boolean, default=False)

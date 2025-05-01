@@ -78,14 +78,5 @@ class MovieOut(BaseModel):
     type: Optional[str]
     aired: Optional[str]
     members: Optional[str]
-
-
-class User(BaseModel):
-    id: int
-    username: str
-    age: Optional[int]
-    password: str
-    status: bool
-
     class Config:
-        from_attributes = True
+        from_attributes: True 
