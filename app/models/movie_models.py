@@ -23,7 +23,7 @@ class MovieDetail(Base):
     rank = Column(Integer)
     status = Column(String)
     episodes = Column(Integer)
-    synopsis = Column(Text)  # Mảng có thể chuyển sang chuỗi JSON nếu cần
+    synopsis = Column(String) 
     link = Column(String)
     synonyms = Column(String)
     japanese = Column(String)
@@ -61,5 +61,5 @@ class MovieReview(Base):
     id = Column(Integer, primary_key=True)
     movie_detail_id = Column(Integer, nullable=False)
     username = Column(String)
-    show_reviews = Column(ARRAY(String))  # Dùng ARRAY cho mảng chuỗi
-    hidden_reviews = Column(ARRAY(String))  # Dùng ARRAY cho mảng chuỗi
+    show_reviews = Column(String)  
+    hidden_reviews = Column(String)  

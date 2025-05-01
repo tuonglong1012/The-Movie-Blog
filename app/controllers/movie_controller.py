@@ -109,8 +109,34 @@ class TopanimeCraw1lSpider(scrapy.Spider):
             # "producer": producer,
         }
 
+# Làm sạch phần tử trong mảng []
+def clean_text(movie):
+    if isinstance(movie, list):
+        # Lọc bỏ các chuỗi chỉ chứa khoảng trắng hoặc xuống dòng, đồng thời làm sạch ký tự xuống dòng
+        cleaned = [line.strip() for line in movie if line.strip()]
+        # Kết nối các phần tử lại với nhau bằng dấu cách
+        synopsis_text = " ".join(cleaned)
+    elif isinstance(movie, str):
+        synopsis_text = movie.strip()
+    else:
+        synopsis_text = ""
+    
+    # Đảm bảo loại bỏ hoàn toàn các ký tự xuống dòng và thay thế chúng bằng khoảng trắng
+    synopsis_text = " ".join(synopsis_text.split())  # Tách chuỗi thành các từ và nối lại bằng khoảng trắng
+    return synopsis_text
 
-@router.post("/import-json")
+# Làm sạch phần tử status
+def clean_status(status_raw):
+    if isinstance(status_raw, list):
+        # Lọc bỏ chuỗi rỗng và loại bỏ ký tự xuống dòng/thừa khoảng trắng
+        cleaned = [s.strip() for s in status_raw if s.strip()]
+        # Nối các phần tử lại bằng dấu cách
+        return " ".join(cleaned)
+    elif isinstance(status_raw, str):
+        return status_raw.strip()
+    return ""
+
+# Import json vào database
 def import_movies(db: Session = Depends(get_db)):
     json_path = os.path.join("data", "data.json")
 
@@ -139,31 +165,17 @@ def import_movies(db: Session = Depends(get_db)):
             )
             db.add(newMovie)
             db.commit()
-
+            
             synopsis_raw = movie.get("synopsis", "")
-            if isinstance(synopsis_raw, list):
-                # Lọc bỏ các chuỗi chỉ chứa khoảng trắng hoặc xuống dòng, đồng thời làm sạch ký tự xuống dòng
-                cleaned = [line.strip() for line in synopsis_raw if line.strip()]
-                # Kết nối các phần tử lại với nhau bằng dấu cách
-                synopsis_text = " ".join(cleaned)
-            elif isinstance(synopsis_raw, str):
-                synopsis_text = synopsis_raw.strip()
-            else:
-                synopsis_text = ""
-            # Đảm bảo loại bỏ hoàn toàn các ký tự xuống dòng trong cuối cùng
-            synopsis_text = synopsis_text.replace("\r\n", " ").replace("\n", " ")
-
-
-
             movie_id = newMovie.id     
             newMovieDetail = MovieDetail(
                 movie_id=movie_id,
                 score=movie.get("score"),
                 title=title,
                 rank=movie.get("rank"),
-                status=movie.get("status"),
+                status=clean_status(movie.get("status")),
                 episodes=movie.get("episodes"),
-                synopsis=synopsis_raw,
+                synopsis=clean_text(synopsis_raw),
                 link=movie.get("link"),
                 synonyms=movie_test.get("Synonyms:", "").replace("Synonyms:", "").strip(),
                 japanese=movie_test.get("Japanese:", "").replace("Japanese:", "").strip(),
@@ -210,8 +222,8 @@ def import_movies(db: Session = Depends(get_db)):
                 newReview = MovieReview(
                     movie_detail_id=movie_detail_id,
                     username=username,
-                    show_reviews=",".join(review_data.get("show", [])),
-                    hidden_reviews=",".join(review_data.get("hidden", []))
+                    show_reviews= clean_text(review_data.get("show", "")),
+                    hidden_reviews= clean_text(review_data.get("hidden", "")),
                 )
                 db.add(newReview)
 
@@ -224,9 +236,15 @@ def import_movies(db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Không tìm thấy file JSON.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-
-
+# Lấy danh sách phim
 def get_all_movies(db: Session): 
     return db.query(Movie).all()
+# Hàm lấy chi tiết phim theo id
+def get_movie_by_id(db: Session, id: int):
+    return db.query(MovieDetail).filter(MovieDetail.movie_id == id).first()
+# Hàm lấy nhân vật phim theo id
+def get_character_by_id(db: Session, id: int):
+    return db.query(Character).filter(Character.movie_detail_id == id).all()
+# Hàm lấy review phim theo id
+def get_review_by_id(db: Session, id: int):
+    return db.query(MovieReview).filter(MovieReview.movie_detail_id == id).all()
