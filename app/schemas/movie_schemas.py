@@ -1,11 +1,25 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional
 
-class MovieCreate(BaseModel):
-    title: str
-    score: Optional[float]
 
-class MovieOut(MovieCreate):
+class MovieOut(BaseModel):
     id: int
+    title: Optional[str]
+    score: Optional[float]
+    rank: Optional[int]
+    episodes: Optional[int]
+    external_id: Optional[int]
+    type: Optional[str]
+    aired: Optional[str]
+    members: Optional[str]
+
+
+class User(BaseModel):
+    id: int
+    username: str
+    age: Optional[int]
+    password: str
+    status: bool
+
     class Config:
-        from_attributes  = True
+        from_attributes = True

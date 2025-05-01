@@ -3,7 +3,8 @@ from scrapy.crawler import CrawlerProcess
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..database import get_db
-from ..models import Movie
+from ..models import Movie, MovieDetail, Character, MovieReview, UserModel
+from ..schemas.movie_schemas import User
 import json
 import os
 
@@ -142,3 +143,167 @@ class TopanimeCraw1lSpider(scrapy.Spider):
             "test": test,
             # "producer": producer,
         }
+
+
+@router.post("/import-json")
+def import_movies(db: Session = Depends(get_db)):
+    json_path = os.path.join("data", "data.json")
+
+    try:
+        with open(json_path, "r", encoding="UTF-8") as f:
+            movies_data = json.load(f)
+
+        if not isinstance(movies_data, list):
+            raise HTTPException(
+                status_code=400, detail="File JSON phải là danh sách các đối tượng.")
+
+        for movie in movies_data:
+            title = movie.get("title", "Unknown Title")
+            if not title:
+                raise HTTPException(
+                    status_code=400, detail="Title is required for the movie.")
+            # Thêm phim vào bảng movies
+            movie_test = movie.get("test", {})
+            newMovie = Movie(
+                external_id=movie.get("id"),
+                title=title,
+                rank=movie.get("rank"),
+                episodes=movie.get("episodes"),
+                score=movie.get("score"),
+                type=movie_test.get("Type:", "").replace("Type:", "").strip(),
+                aired=movie_test.get("Aired:", "").replace(
+                    "Aired:", "").strip(),
+                members=movie_test.get("Members:", "").replace(
+                    "Members:", "").strip()
+            )
+            db.add(newMovie)
+            db.commit()
+
+            synopsis_raw = movie.get("synopsis", "")
+            if isinstance(synopsis_raw, list):
+                # Lọc bỏ các chuỗi chỉ chứa khoảng trắng hoặc xuống dòng, đồng thời làm sạch ký tự xuống dòng
+                cleaned = [line.strip()
+                           for line in synopsis_raw if line.strip()]
+                # Kết nối các phần tử lại với nhau bằng dấu cách
+                synopsis_text = " ".join(cleaned)
+            elif isinstance(synopsis_raw, str):
+                synopsis_text = synopsis_raw.strip()
+            else:
+                synopsis_text = ""
+            # Đảm bảo loại bỏ hoàn toàn các ký tự xuống dòng trong cuối cùng
+            synopsis_text = synopsis_text.replace(
+                "\r\n", " ").replace("\n", " ")
+
+            movie_id = newMovie.id
+            newMovieDetail = MovieDetail(
+                movie_id=movie_id,
+                score=movie.get("score"),
+                title=title,
+                rank=movie.get("rank"),
+                status=movie.get("status"),
+                episodes=movie.get("episodes"),
+                synopsis=synopsis_raw,
+                link=movie.get("link"),
+                synonyms=movie_test.get("Synonyms:", "").replace(
+                    "Synonyms:", "").strip(),
+                japanese=movie_test.get("Japanese:", "").replace(
+                    "Japanese:", "").strip(),
+                type=movie_test.get("Type:", "").replace("Type:", "").strip(),
+                aired=movie_test.get("Aired:", "").replace(
+                    "Aired:", "").strip(),
+                premiered=movie_test.get("Premiered:", "").replace(
+                    "Premiered:", "").strip(),
+                broadcast=movie_test.get("Broadcast:", "").replace(
+                    "Broadcast:", "").strip(),
+                producers=movie_test.get("Producers:", "").replace(
+                    "Producers:", "").strip(),
+                licensors=movie_test.get("Licensors:", "").replace(
+                    "Licensors:", "").strip(),
+                studios=movie_test.get("Studios:", "").replace(
+                    "Studios:", "").strip(),
+                source=movie_test.get("Source:", "").replace(
+                    "Source:", "").strip(),
+                genres=movie_test.get("Genres:", "").replace(
+                    "Genres:", "").strip(),
+                demographic=movie_test.get("Demographic:", "").replace(
+                    "Demographic:", "").strip(),
+                duration=movie_test.get("Duration:", "").replace(
+                    "Duration:", "").strip(),
+                rating=movie_test.get("Rating:", "").replace(
+                    "Rating:", "").strip(),
+                popularity=movie_test.get("Popularity:", "").replace(
+                    "Popularity:", "").strip(),
+                members=movie_test.get("Members:", "").replace(
+                    "Members:", "").strip(),
+                favorites=movie_test.get("Favorites:", "").replace(
+                    "Favorites:", "").strip(),
+            )
+            db.add(newMovieDetail)
+            db.commit()
+
+            movie_detail_id = newMovieDetail.id
+
+            # Thêm các nhân vật
+            characters_data = movie_test.get("characters", {})
+            for name, character_data in characters_data.items():
+                if name == "null":
+                    continue
+                newCharacter = Character(
+                    movie_detail_id=movie_detail_id,
+                    name=name,
+                    role=character_data.get("role"),
+                    link=character_data.get("link"),
+                    voice_actor=character_data.get("voice_actor"),
+                    voice_actor_link=character_data.get("voice_actor_link"),
+                    voice_actor_country=character_data.get(
+                        "voice_actor_country")
+                )
+                db.add(newCharacter)
+
+            # Thêm các review
+            reviews_data = movie_test.get("reviews", {})
+            for username, review_data in reviews_data.items():
+                newReview = MovieReview(
+                    movie_detail_id=movie_detail_id,
+                    username=username,
+                    show_reviews=",".join(review_data.get("show", [])),
+                    hidden_reviews=",".join(review_data.get("hidden", []))
+                )
+                db.add(newReview)
+
+            # Commit toàn bộ nhân vật và review
+            db.commit()
+
+        return {"message": f"Đã thêm {len(movies_data)} phim vào cơ sở dữ liệu."}
+
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=404, detail="Không tìm thấy file JSON.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+def get_all_movies(db: Session):
+    return db.query(Movie).all()
+
+
+def create_user(user: User, db: Session = Depends(get_db)):
+    # Check if the user already exists
+    existing_user = db.query(UserModel).filter(
+        UserModel.username == user.username).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="User already exists")
+
+    # Create a new user
+    new_user = UserModel(
+        id=user.id,
+        username=user.username,
+        age=user.age,
+        password=user.password,  # In production, hash the password before saving!
+        status=False
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return new_user
