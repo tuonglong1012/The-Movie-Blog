@@ -3,11 +3,13 @@ from scrapy.crawler import CrawlerProcess
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..database import get_db
-from ..models import Movie,MovieDetail,Character,MovieReview
+from ..models import Movie,MovieDetail,Character,MovieReview,UserModel
+from ..schemas.movie_schemas import User
 import json
 import os
 
 router = APIRouter()
+
 
 
 def get_movie():
@@ -147,10 +149,12 @@ def import_movies(db: Session = Depends(get_db)):
         if not isinstance(movies_data, list):
             raise HTTPException(status_code=400, detail="File JSON phải là danh sách các đối tượng.")
 
+
         for movie in movies_data:
             title = movie.get("title", "Unknown Title")
             if not title:
                 raise HTTPException(status_code=400, detail="Title is required for the movie.")
+
             # Thêm phim vào bảng movies
             movie_test = movie.get("test", {})
             newMovie = Movie(
@@ -168,6 +172,8 @@ def import_movies(db: Session = Depends(get_db)):
             
             synopsis_raw = movie.get("synopsis", "")
             movie_id = newMovie.id     
+
+       
             newMovieDetail = MovieDetail(
                 movie_id=movie_id,
                 score=movie.get("score"),
@@ -193,7 +199,7 @@ def import_movies(db: Session = Depends(get_db)):
                 rating=movie_test.get("Rating:", "").replace("Rating:", "").strip(),
                 popularity=movie_test.get("Popularity:", "").replace("Popularity:", "").strip(),
                 members=movie_test.get("Members:", "").replace("Members:", "").strip(),
-                favorites=movie_test.get("Favorites:", "").replace("Favorites:", "").strip(),
+                favorites=movie_test.get("Favorites:", "").replace("Favorites:", "").strip(), 
             )
             db.add(newMovieDetail)
             db.commit()
@@ -213,6 +219,7 @@ def import_movies(db: Session = Depends(get_db)):
                     voice_actor=character_data.get("voice_actor"),
                     voice_actor_link=character_data.get("voice_actor_link"),
                     voice_actor_country=character_data.get("voice_actor_country")
+
                 )
                 db.add(newCharacter)
 
@@ -224,6 +231,7 @@ def import_movies(db: Session = Depends(get_db)):
                     username=username,
                     show_reviews= clean_text(review_data.get("show", "")),
                     hidden_reviews= clean_text(review_data.get("hidden", "")),
+
                 )
                 db.add(newReview)
 
@@ -248,3 +256,30 @@ def get_character_by_id(db: Session, id: int):
 # Hàm lấy review phim theo id
 def get_review_by_id(db: Session, id: int):
     return db.query(MovieReview).filter(MovieReview.movie_detail_id == id).all()
+
+
+
+def get_all_movies(db: Session):
+    return db.query(Movie).all()
+
+
+def create_user(user: User, db: Session = Depends(get_db)):
+    # Check if the user already exists
+    existing_user = db.query(UserModel).filter(
+        UserModel.username == user.username).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="User already exists")
+
+    # Create a new user
+    new_user = UserModel(
+        id=user.id,
+        username=user.username,
+        age=user.age,
+        password=user.password,  # In production, hash the password before saving!
+        status=False
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return new_user
