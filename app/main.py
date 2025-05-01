@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from .database import engine, Base
-from .routes import movie_routes
+from .routes import movie_routes,account_routes
 
 
 # Tạo bảng nếu chưa có
@@ -11,6 +11,8 @@ app = FastAPI()
 
 # Đăng ký router
 app.include_router(movie_routes.router, prefix="/api", tags=["Movies"])
+app.include_router(account_routes.router, prefix="/api", tags=["Account"])
+
 @app.get("/")
 def read_root():
     return {"message": "API phim đang hoạt động!"}
