@@ -1,10 +1,10 @@
-from sqlalchemy import Column, Integer, String, Text, ARRAY, TIMESTAMP, Float, Boolean,ForeignKey
+from sqlalchemy import Column, Integer, String, Text, ARRAY, TIMESTAMP, Float, Boolean, ForeignKey
 from ..database import Base
 
 
 class Movie(Base):
     __tablename__ = "movies"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     external_id = Column(Integer)
     title = Column(String(255))
@@ -12,8 +12,9 @@ class Movie(Base):
     rank = Column(Integer)
     episodes = Column(Integer)
     aired = Column(String(100))
-    type = Column(String(50))  
+    type = Column(String(50))
     members = Column(String(50))
+
 
 class MovieDetail(Base):
     __tablename__ = 'movies_detail'
@@ -25,7 +26,7 @@ class MovieDetail(Base):
     rank = Column(Integer)
     status = Column(String)
     episodes = Column(Integer)
-    synopsis = Column(String) 
+    synopsis = Column(String)
     link = Column(String)
     synonyms = Column(String)
     japanese = Column(String)
@@ -44,6 +45,8 @@ class MovieDetail(Base):
     popularity = Column(String)
     members = Column(String)
     favorites = Column(String)
+    external_id = Column(Integer)
+
 
 class Character(Base):
     __tablename__ = 'movies_characters'
@@ -57,10 +60,10 @@ class Character(Base):
     voice_actor_link = Column(String)
     voice_actor_country = Column(String)
 
+
 class Favorite(Base):
     __tablename__ = "movies_favorites"
-    
+
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("account.id"), nullable=False)
     movie_id = Column(Integer, ForeignKey("movies.id"), nullable=False)
-

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 
+
 class MovieOut(BaseModel):
     id: int
     title: Optional[str]
@@ -15,6 +16,7 @@ class MovieOut(BaseModel):
     class Config:
         from_attributes: True
 
+
 class MovieDetailOut(BaseModel):
     id: int
     title: str
@@ -22,7 +24,7 @@ class MovieDetailOut(BaseModel):
     rank: Optional[int]
     status: Optional[str]
     episodes: Optional[int]
-    synopsis: Optional[str] 
+    synopsis: Optional[str]
     link: Optional[str]
     synonyms: Optional[str]
     japanese: Optional[str]
@@ -41,11 +43,46 @@ class MovieDetailOut(BaseModel):
     popularity: Optional[str]
     members: Optional[str]
     favorites: Optional[str]
+    external_id: Optional[int]
 
     class Config:
-        from_attributes: True  # Điều này cho phép FastAPI chuyển đổi dữ liệu từ model SQLAlchemy sang schema Pydantic
+        # Điều này cho phép FastAPI chuyển đổi dữ liệu từ model SQLAlchemy sang schema Pydantic
+        from_attributes: True
 
-class CharacterOut(BaseModel): 
+
+class MovieIn(BaseModel):
+    title: str
+    score: Optional[float]
+    rank: Optional[int]
+    status: Optional[str]
+    episodes: Optional[int]
+    synopsis: Optional[str]
+    link: Optional[str]
+    synonyms: Optional[str]
+    japanese: Optional[str]
+    type: Optional[str]
+    aired: Optional[str]
+    premiered: Optional[str]
+    broadcast: Optional[str]
+    producers: Optional[str]
+    licensors: Optional[str]
+    studios: Optional[str]
+    source: Optional[str]
+    genres: Optional[str]
+    demographic: Optional[str]
+    duration: Optional[str]
+    rating: Optional[str]
+    popularity: Optional[str]
+    members: Optional[str]
+    favorites: Optional[str]
+    external_id: Optional[int]
+
+    class Config:
+        # Điều này cho phép FastAPI chuyển đổi dữ liệu từ model SQLAlchemy sang schema Pydantic
+        from_attributes: True
+
+
+class CharacterOut(BaseModel):
     id: int
     name: str
     role: Optional[str]
@@ -55,8 +92,9 @@ class CharacterOut(BaseModel):
     voice_actor_country: Optional[str]
 
     class Config:
-        from_attributes: True 
-       
+        from_attributes: True
+
+
 class MovieOut(BaseModel):
     id: int
     title: Optional[str]
@@ -67,12 +105,15 @@ class MovieOut(BaseModel):
     type: Optional[str]
     aired: Optional[str]
     members: Optional[str]
+
     class Config:
-        from_attributes: True 
-        
+        from_attributes: True
+
+
 class FavoriteCreate(BaseModel):
     user_id: int
     movie_id: int
+
 
 class FavoriteOut(BaseModel):
     id: int

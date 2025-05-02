@@ -78,3 +78,17 @@ def login_user(username: str, password: str, db: Session):
     if not user.status:
         raise HTTPException(status_code=403, detail="User not approved")
     return user
+
+
+def change_password(username: int, old_password: str, new_password: str, db: Session):
+    user = db.query(UserModel).filter(UserModel.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user.password == old_password:
+        user.password = new_password
+    else:
+        raise HTTPException(
+            status_code=400, detail="Old password is incorrect")
+    db.commit()
+    db.refresh(user)
+    return {"message": f"Change password success"}
