@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models.account_models import UserModel
-from ..schemas.account_schemas import UserCreate,UserOut
+from ..schemas.account_schemas import UserCreate, UserOut
 import json
 import os
 
@@ -13,7 +13,8 @@ router = APIRouter()
 
 def create_user(user: UserCreate, db: Session):
     # Check if user exists
-    existing_user = db.query(UserModel).filter(UserModel.username == user.username).first()
+    existing_user = db.query(UserModel).filter(
+        UserModel.username == user.username).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="User already exists")
 
@@ -30,8 +31,10 @@ def create_user(user: UserCreate, db: Session):
     db.refresh(new_user)
     return new_user
 
-def get_user(db:Session):
+
+def get_user(db: Session):
     return db.query(UserModel).all()
+
 
 def approve_user(user_id: int, db: Session):
     user = db.query(UserModel).filter(UserModel.id == user_id).first()
@@ -41,16 +44,21 @@ def approve_user(user_id: int, db: Session):
     db.commit()
     db.refresh(user)
     return user
-def update_role(user_id: int,new_role: int, db: Session):
+
+
+def update_role(user_id: int, new_role: int, db: Session):
     user = db.query(UserModel).filter(UserModel.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     if not new_role:
-        raise HTTPException(status_code=404, detail="Role must be 0 (user) or 1 (admin)")
+        raise HTTPException(
+            status_code=404, detail="Role must be 0 (user) or 1 (admin)")
     user.role = new_role
     db.commit()
     db.refresh(user)
     return user
+
+
 def delete_user(user_id: int, db: Session):
     user = db.query(UserModel).filter(UserModel.id == user_id).first()
     if not user:
@@ -60,3 +68,13 @@ def delete_user(user_id: int, db: Session):
     db.commit()
     return {"message": f"User with ID {user_id} has been deleted"}
 
+
+def login_user(username: str, password: str, db: Session):
+    user = db.query(UserModel).filter(UserModel.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user.password != password:
+        raise HTTPException(status_code=400, detail="Incorrect password")
+    if not user.status:
+        raise HTTPException(status_code=403, detail="User not approved")
+    return user
