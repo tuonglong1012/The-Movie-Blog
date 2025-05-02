@@ -3,22 +3,19 @@ from sqlalchemy.orm import Session
 from ..controllers.movie_controller import import_movies
 from ..database import get_db
 from ..controllers.movie_controller import get_movie
-from ..schemas.movie_schemas import MovieOut, MovieDetailOut, CharacterOut, ReviewOut
-from ..controllers.movie_controller import get_all_movies, get_movie_by_id, get_character_by_id, get_review_by_id
+from ..schemas.movie_schemas import MovieOut, MovieDetailOut, CharacterOut,FavoriteOut,FavoriteCreate
+from ..controllers.movie_controller import get_all_movies, get_movie_by_id, get_character_by_id,add_favorite,get_favorites_by_user,delete_favorite
 import requests
 from typing import List
 
 router = APIRouter()
 
 # [POST]/api/import-json
-
-
 @router.post("/import-json")
 def import_from_json(db: Session = Depends(get_db)):
     return import_movies(db)
 
-
-# [post]/api/fetch-json
+# [POST]/api/fetch-json
 @router.post("/fetch-json")
 def fetch_import(db: Session = Depends(get_db)):
     get_movie()
@@ -32,16 +29,13 @@ def fetch_import(db: Session = Depends(get_db)):
         "import": response.json()
     }
 
-
 # [GET]/api/movies
 @router.get("/movies", response_model=list[MovieOut])
 def list_movies(db: Session = Depends(get_db)):
     return get_all_movies(db)
 
 # [GET]/api/movies/:id
-
-
-@router.get("/movies/{id}", response_model=MovieDetailOut)
+@router.get("/movies/{id}/movie-detail", response_model=MovieDetailOut)
 def detail_movie(id: int, db: Session = Depends(get_db)):
     movie = get_movie_by_id(db, id)
     if movie is None:
@@ -49,8 +43,6 @@ def detail_movie(id: int, db: Session = Depends(get_db)):
     return movie
 
 # [GET]/api/movies/:id/character
-
-
 @router.get("/movie/{id}/character", response_model=List[CharacterOut])
 def get_character(id: int, db: Session = Depends(get_db)):
     character = get_character_by_id(db, id)
@@ -58,19 +50,22 @@ def get_character(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Character not found")
     return character
 
-# [GET]/api/movies/:id/review
-
-
-@router.get("/movie/{id}/review", response_model=List[ReviewOut])
-def get_review(id: int, db: Session = Depends(get_db)):
-    review = get_review_by_id(db, id)
-    if review is None:
-        raise HTTPException(status_code=404, detail="Review not found")
-    return review
-
-# [get]/api/movies
-
-
+# [GET]/api/movies
 @router.get("/movies", response_model=list[MovieOut])
 def list_movies(db: Session = Depends(get_db)):
     return get_all_movies(db)
+
+# [POST]/api/movies/add-favorites-movies
+@router.post("/movies/add-favorites-movies", response_model=FavoriteOut)
+def add_favorite_movie(fav: FavoriteCreate, db: Session = Depends(get_db)):
+    return add_favorite(fav,db)
+
+# [GET]/api/movies/user/{user_id}/favorites-movies
+@router.get("/movies/user/{user_id}/favorites-movies", response_model=list[FavoriteOut])
+def get_favorites(user_id: int, db: Session = Depends(get_db)):
+    return get_favorites_by_user(user_id,db)
+
+
+@router.delete("/movies/remove-favorites-movies")
+def remove_favorite(user_id: int, movie_id: int, db: Session = Depends(get_db)):
+    return delete_favorite(user_id,movie_id,db)

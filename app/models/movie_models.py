@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ARRAY, TIMESTAMP, Float, Boolean
+from sqlalchemy import Column, Integer, String, Text, ARRAY, TIMESTAMP, Float, Boolean,ForeignKey
 from ..database import Base
 
 
@@ -57,12 +57,10 @@ class Character(Base):
     voice_actor_link = Column(String)
     voice_actor_country = Column(String)
 
-class MovieReview(Base):
-    __tablename__ = 'movies_reviews'
-
+class Favorite(Base):
+    __tablename__ = "movies_favorites"
+    
     id = Column(Integer, primary_key=True)
-    movie_detail_id = Column(Integer, nullable=False)
-    username = Column(String)
-    show_reviews = Column(String)  
-    hidden_reviews = Column(String)  
+    user_id = Column(Integer, ForeignKey("account.id"), nullable=False)
+    movie_id = Column(Integer, ForeignKey("movies.id"), nullable=False)
 

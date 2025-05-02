@@ -3,7 +3,9 @@ from scrapy.crawler import CrawlerProcess
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..database import get_db
-from ..models import Movie,MovieDetail,Character,MovieReview
+from ..models.movie_models import Movie,MovieDetail,Character,Favorite
+from ..models.reviews_models import MovieReview
+from ..schemas.movie_schemas import FavoriteCreate,FavoriteOut
 import json
 import os
 
@@ -250,9 +252,41 @@ def get_movie_by_id(db: Session, id: int):
 # Hàm lấy nhân vật phim theo id
 def get_character_by_id(db: Session, id: int):
     return db.query(Character).filter(Character.movie_detail_id == id).all()
-# Hàm lấy review phim theo id
-def get_review_by_id(db: Session, id: int):
-    return db.query(MovieReview).filter(MovieReview.movie_detail_id == id).all()
 
+# Thêm phim vào danh sách yêu thích
+def add_favorite(fav: FavoriteCreate, db: Session = Depends(get_db)):
+    # Kiểm tra xem movie có tồn tại không
+    
+    movie = db.query(Movie).filter(Movie.id == fav.movie_id).first()
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
 
+    # Kiểm tra xem đã thêm rồi chưa
+    existing = db.query(Favorite).filter_by(user_id=fav.user_id, movie_id=fav.movie_id).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Already in favorites")
 
+    new_fav = Favorite(
+        user_id=fav.user_id, 
+        movie_id=fav.movie_id
+        )
+    db.add(new_fav)
+    db.commit()
+    db.refresh(new_fav)
+    return new_fav
+
+# Lấy danh sách yêu thích theo user_id
+def get_favorites_by_user(user_id: int, db: Session = Depends(get_db)):
+    favorites = db.query(Favorite).filter(Favorite.user_id == user_id).all()
+    return favorites
+
+# Xóa phim yêu thích theo user_id
+def delete_favorite(user_id: int, movie_id: int, db: Session = Depends(get_db)):
+    favorite = db.query(Favorite).filter_by(user_id=user_id, movie_id=movie_id).first()
+    
+    if not favorite:
+        raise HTTPException(status_code=404, detail="Favorite movie not found")
+
+    db.delete(favorite)
+    db.commit()
+    return {"message": "Favorite movie deleted successfully"}

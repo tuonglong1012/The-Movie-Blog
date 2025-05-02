@@ -56,18 +56,7 @@ class CharacterOut(BaseModel):
 
     class Config:
         from_attributes: True 
-
-class ReviewOut(BaseModel): 
-    id: int
-    username: str
-    show_reviews: Optional[str]
-    hidden_reviews: Optional[str] 
-    
-    class Config:
-        from_attributes: True 
        
-        
-
 class MovieOut(BaseModel):
     id: int
     title: Optional[str]
@@ -80,3 +69,15 @@ class MovieOut(BaseModel):
     members: Optional[str]
     class Config:
         from_attributes: True 
+        
+class FavoriteCreate(BaseModel):
+    user_id: int
+    movie_id: int
+
+class FavoriteOut(BaseModel):
+    id: int
+    user_id: int
+    movie_id: int
+
+    class Config:
+        from_attributes = True
