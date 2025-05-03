@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel,Field
 from typing import Optional
 
 class MovieOut(BaseModel):
@@ -81,3 +81,7 @@ class FavoriteOut(BaseModel):
 
     class Config:
         from_attributes = True
+class RatingIn(BaseModel):
+    user_id: int
+    movie_id: int
+    rating: float = Field(ge=1, le=10)

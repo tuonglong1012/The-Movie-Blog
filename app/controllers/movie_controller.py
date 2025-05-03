@@ -3,9 +3,9 @@ from scrapy.crawler import CrawlerProcess
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..database import get_db
-from ..models.movie_models import Movie,MovieDetail,Character,Favorite
+from ..models.movie_models import Movie,MovieDetail,Character,Favorite,Rating
 from ..models.reviews_models import MovieReview
-from ..schemas.movie_schemas import FavoriteCreate,FavoriteOut
+from ..schemas.movie_schemas import FavoriteCreate,RatingIn
 import json
 import os
 
@@ -290,3 +290,4 @@ def delete_favorite(user_id: int, movie_id: int, db: Session = Depends(get_db)):
     db.delete(favorite)
     db.commit()
     return {"message": "Favorite movie deleted successfully"}
+

@@ -64,3 +64,10 @@ class Favorite(Base):
     user_id = Column(Integer, ForeignKey("account.id"), nullable=False)
     movie_id = Column(Integer, ForeignKey("movies.id"), nullable=False)
 
+class Rating(Base):
+    __tablename__ = "movies_rating"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, nullable=False)
+    movie_id = Column(Integer, nullable=False)
+    rating = Column(Float, nullable=False)
