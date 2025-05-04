@@ -87,11 +87,11 @@ def remove_favorite(user_id: int, movie_id: int, db: Session = Depends(get_db)):
     return delete_favorite(user_id, movie_id, db)
 
 
-@router.post("moives/add_movie")
+@router.post("/moives/add_movie")
 def add_movie_to_db(movie: MovieIn, db: Session = Depends(get_db)):
     return add_movie(movie, db)
 
 
-@router.put("movies/{id}/update_movie")
+@router.put("/movies/{id}/update_movie")
 def update_movie_to_db(id: int, movie: MovieIn, db: Session = Depends(get_db)):
     return update_movie(id, movie, db)
