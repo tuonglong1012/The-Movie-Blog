@@ -20,18 +20,18 @@ def import_from_json(db: Session = Depends(get_db)):
 # [POST]/api/fetch-json
 
 
-@router.post("/fetch-json")
-def fetch_import(db: Session = Depends(get_db)):
-    get_movie()
-    response = requests.post("http://localhost:8000/api/import-json")
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code,
-                            detail="Lỗi khi import vào DB")
+# @router.post("/fetch-json")
+# def fetch_import(db: Session = Depends(get_db)):
+#     get_movie()
+#     response = requests.post("http://localhost:8000/api/import-json")
+#     if response.status_code != 200:
+#         raise HTTPException(status_code=response.status_code,
+#                             detail="Lỗi khi import vào DB")
 
-    return {
-        "message": "Hoàn tất import",
-        "import": response.json()
-    }
+#     return {
+#         "message": "Hoàn tất import",
+#         "import": response.json()
+#     }
 
 # [GET]/api/movies
 

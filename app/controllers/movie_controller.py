@@ -146,24 +146,21 @@ def clean_status(status_raw):
     return ""
 
 # Import json vào database
-
-
 def import_movies(db: Session = Depends(get_db)):
-    json_path = os.path.join("data", "data.json")
+    json_path = os.path.join("data", "test1.json")
 
     try:
         with open(json_path, "r", encoding="UTF-8") as f:
             movies_data = json.load(f)
 
         if not isinstance(movies_data, list):
-            raise HTTPException(
-                status_code=400, detail="File JSON phải là danh sách các đối tượng.")
+            raise HTTPException(status_code=400, detail="File JSON phải là danh sách các đối tượng.")
+
 
         for movie in movies_data:
             title = movie.get("title", "Unknown Title")
             if not title:
-                raise HTTPException(
-                    status_code=400, detail="Title is required for the movie.")
+                raise HTTPException(status_code=400, detail="Title is required for the movie.")
 
             # Thêm phim vào bảng movies
             movie_test = movie.get("test", {})
@@ -174,17 +171,16 @@ def import_movies(db: Session = Depends(get_db)):
                 episodes=movie.get("episodes"),
                 score=movie.get("score"),
                 type=movie_test.get("Type:", "").replace("Type:", "").strip(),
-                aired=movie_test.get("Aired:", "").replace(
-                    "Aired:", "").strip(),
-                members=movie_test.get("Members:", "").replace(
-                    "Members:", "").strip()
+                aired=movie_test.get("Aired:", "").replace("Aired:", "").strip(),
+                members=movie_test.get("Members:", "").replace("Members:", "").strip()
             )
             db.add(newMovie)
             db.commit()
-
+            
             synopsis_raw = movie.get("synopsis", "")
-            movie_id = newMovie.id
+            movie_id = newMovie.id     
 
+       
             newMovieDetail = MovieDetail(
                 movie_id=movie_id,
                 score=movie.get("score"),
@@ -194,40 +190,23 @@ def import_movies(db: Session = Depends(get_db)):
                 episodes=movie.get("episodes"),
                 synopsis=clean_text(synopsis_raw),
                 link=movie.get("link"),
-                synonyms=movie_test.get("Synonyms:", "").replace(
-                    "Synonyms:", "").strip(),
-                japanese=movie_test.get("Japanese:", "").replace(
-                    "Japanese:", "").strip(),
+                synonyms=movie_test.get("Synonyms:", "").replace("Synonyms:", "").strip(),
+                japanese=movie_test.get("Japanese:", "").replace("Japanese:", "").strip(),
                 type=movie_test.get("Type:", "").replace("Type:", "").strip(),
-                aired=movie_test.get("Aired:", "").replace(
-                    "Aired:", "").strip(),
-                premiered=movie_test.get("Premiered:", "").replace(
-                    "Premiered:", "").strip(),
-                broadcast=movie_test.get("Broadcast:", "").replace(
-                    "Broadcast:", "").strip(),
-                producers=movie_test.get("Producers:", "").replace(
-                    "Producers:", "").strip(),
-                licensors=movie_test.get("Licensors:", "").replace(
-                    "Licensors:", "").strip(),
-                studios=movie_test.get("Studios:", "").replace(
-                    "Studios:", "").strip(),
-                source=movie_test.get("Source:", "").replace(
-                    "Source:", "").strip(),
-                genres=movie_test.get("Genres:", "").replace(
-                    "Genres:", "").strip(),
-                demographic=movie_test.get("Demographic:", "").replace(
-                    "Demographic:", "").strip(),
-                duration=movie_test.get("Duration:", "").replace(
-                    "Duration:", "").strip(),
-                rating=movie_test.get("Rating:", "").replace(
-                    "Rating:", "").strip(),
-                popularity=movie_test.get("Popularity:", "").replace(
-                    "Popularity:", "").strip(),
-                members=movie_test.get("Members:", "").replace(
-                    "Members:", "").strip(),
-                favorites=movie_test.get("Favorites:", "").replace(
-                    "Favorites:", "").strip(),
-                external_id=movie.get("id")
+                aired=movie_test.get("Aired:", "").replace("Aired:", "").strip(),
+                premiered=movie_test.get("Premiered:", "").replace("Premiered:", "").strip(),  
+                broadcast=movie_test.get("Broadcast:", "").replace("Broadcast:", "").strip(),
+                producers=movie_test.get("Producers:", "").replace("Producers:", "").strip(),
+                licensors=movie_test.get("Licensors:", "").replace("Licensors:", "").strip(),
+                studios=movie_test.get("Studios:", "").replace("Studios:", "").strip(),
+                source=movie_test.get("Source:", "").replace("Source:", "").strip(),
+                genres=movie_test.get("Genres:", "").replace("Genres:", "").strip(),
+                demographic=movie_test.get("Demographic:", "").replace("Demographic:", "").strip(),
+                duration=movie_test.get("Duration:", "").replace("Duration:", "").strip(),
+                rating=movie_test.get("Rating:", "").replace("Rating:", "").strip(),
+                popularity=movie_test.get("Popularity:", "").replace("Popularity:", "").strip(),
+                members=movie_test.get("Members:", "").replace("Members:", "").strip(),
+                favorites=movie_test.get("Favorites:", "").replace("Favorites:", "").strip(), 
             )
             db.add(newMovieDetail)
             db.commit()
@@ -246,8 +225,7 @@ def import_movies(db: Session = Depends(get_db)):
                     link=character_data.get("link"),
                     voice_actor=character_data.get("voice_actor"),
                     voice_actor_link=character_data.get("voice_actor_link"),
-                    voice_actor_country=character_data.get(
-                        "voice_actor_country")
+                    voice_actor_country=character_data.get("voice_actor_country")
 
                 )
                 db.add(newCharacter)
@@ -258,8 +236,8 @@ def import_movies(db: Session = Depends(get_db)):
                 newReview = MovieReview(
                     movie_detail_id=movie_detail_id,
                     username=username,
-                    show_reviews=clean_text(review_data.get("show", "")),
-                    hidden_reviews=clean_text(review_data.get("hidden", "")),
+                    show_reviews= clean_text(review_data.get("show", "")),
+                    hidden_reviews= clean_text(review_data.get("hidden", "")),
 
                 )
                 db.add(newReview)
@@ -270,29 +248,24 @@ def import_movies(db: Session = Depends(get_db)):
         return {"message": f"Đã thêm {len(movies_data)} phim vào cơ sở dữ liệu."}
 
     except FileNotFoundError:
-        raise HTTPException(
-            status_code=404, detail="Không tìm thấy file JSON.")
+        raise HTTPException(status_code=404, detail="Không tìm thấy file JSON.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
 # Lấy danh sách phim
-
-
 def get_all_movies(db: Session):
     return db.query(Movie).all()
+
 # Hàm lấy chi tiết phim theo id
-
-
 def get_movie_by_id(db: Session, id: int):
     return db.query(MovieDetail).filter(MovieDetail.movie_id == id).first()
 # Hàm lấy nhân vật phim theo id
-
-
 def get_character_by_id(db: Session, id: int):
     return db.query(Character).filter(Character.movie_detail_id == id).all()
 
 # Thêm phim vào danh sách yêu thích
-
-
 def add_favorite(fav: FavoriteCreate, db: Session = Depends(get_db)):
     # Kiểm tra xem movie có tồn tại không
 
@@ -316,15 +289,11 @@ def add_favorite(fav: FavoriteCreate, db: Session = Depends(get_db)):
     return new_fav
 
 # Lấy danh sách yêu thích theo user_id
-
-
 def get_favorites_by_user(user_id: int, db: Session = Depends(get_db)):
     favorites = db.query(Favorite).filter(Favorite.user_id == user_id).all()
     return favorites
 
 # Xóa phim yêu thích theo user_id
-
-
 def delete_favorite(user_id: int, movie_id: int, db: Session = Depends(get_db)):
     favorite = db.query(Favorite).filter_by(
         user_id=user_id, movie_id=movie_id).first()
@@ -345,7 +314,7 @@ def add_movie(movie: MovieIn,  db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Movie already exists")
 
     new_movie = Movie(
-        external_id=movie.external_id,
+        external_id="",
         title=movie.title,
         score=movie.score,
         rank=movie.rank,
@@ -385,7 +354,6 @@ def add_movie(movie: MovieIn,  db: Session = Depends(get_db)):
         rating=movie.rating,
         popularity=movie.popularity,
         members=movie.members,
-        external_id=movie.external_id
     )
 
     db.add(new_movie_detail)

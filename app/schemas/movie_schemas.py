@@ -24,7 +24,7 @@ class MovieDetailOut(BaseModel):
     rank: Optional[int]
     status: Optional[str]
     episodes: Optional[int]
-    synopsis: Optional[str]
+    synopsis: Optional[str] 
     link: Optional[str]
     synonyms: Optional[str]
     japanese: Optional[str]
@@ -43,11 +43,9 @@ class MovieDetailOut(BaseModel):
     popularity: Optional[str]
     members: Optional[str]
     favorites: Optional[str]
-    external_id: Optional[int]
 
     class Config:
-        # Điều này cho phép FastAPI chuyển đổi dữ liệu từ model SQLAlchemy sang schema Pydantic
-        from_attributes: True
+        from_attributes: True  # Điều này cho phép FastAPI chuyển đổi dữ liệu từ model SQLAlchemy sang schema Pydantic
 
 
 class MovieIn(BaseModel):
@@ -76,6 +74,7 @@ class MovieIn(BaseModel):
     members: Optional[str]
     favorites: Optional[str]
     external_id: Optional[int]
+
 
     class Config:
         # Điều này cho phép FastAPI chuyển đổi dữ liệu từ model SQLAlchemy sang schema Pydantic

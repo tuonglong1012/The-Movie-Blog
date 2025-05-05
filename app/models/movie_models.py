@@ -45,8 +45,6 @@ class MovieDetail(Base):
     popularity = Column(String)
     members = Column(String)
     favorites = Column(String)
-    external_id = Column(Integer)
-
 
 class Character(Base):
     __tablename__ = 'movies_characters'
