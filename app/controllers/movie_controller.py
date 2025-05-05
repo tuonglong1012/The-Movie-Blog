@@ -3,9 +3,9 @@ from scrapy.crawler import CrawlerProcess
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..database import get_db
-from ..models.movie_models import Movie,MovieDetail,Character,Favorite,Rating
+from ..models.movie_models import Movie, MovieDetail, Character, Favorite, Rating
 from ..models.reviews_models import MovieReview
-from ..schemas.movie_schemas import FavoriteCreate,RatingIn, FavoriteOut, MovieDetailOut, MovieIn
+from ..schemas.movie_schemas import FavoriteCreate, RatingIn, FavoriteOut, MovieDetailOut, MovieIn
 import json
 import os
 
@@ -32,15 +32,25 @@ class TopanimeCraw1lSpider(scrapy.Spider):
     name = "topanime_craw1l"
     allowed_domains = ["myanimelist.net"]
     start_urls = ["https://myanimelist.net/topanime.php"]
+    count = 0  # Initialize count as a class attribute
 
     def parse(self, response):
+        if not self.count:
+            self.count = 0
+
+        self.count += 1
+
         # Extract the anime titles and their corresponding URLs
         urls = response.css(
             ".anime_ranking_h3 a::attr(href)").getall()
 
         for url in urls:
             yield response.follow(url, self.parse_anime)
-        # yield response.follow(urls[0], self.parse_anime)
+
+        # Extract the next page URL and follow it if it exists
+        if response.css("a.next") and self.count < 2:
+            yield response.follow(
+                response.css("a.next::attr(href)").get(), self.parse)
 
     def parse_anime(self, response):
         # Extract the title, score, and rank
@@ -304,7 +314,6 @@ def delete_favorite(user_id: int, movie_id: int, db: Session = Depends(get_db)):
     db.delete(favorite)
     db.commit()
     return {"message": "Favorite movie deleted successfully"}
-
 
 
 def add_movie(movie: MovieIn,  db: Session = Depends(get_db)):
