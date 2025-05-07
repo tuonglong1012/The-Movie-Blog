@@ -7,24 +7,26 @@ from ..models.account_models import UserModel
 from ..schemas.account_schemas import UserCreate, UserOut
 import json
 import os
+import datetime
 
 router = APIRouter()
 
 
 def create_user(user: UserCreate, db: Session):
     # Check if user exists
-    existing_user = db.query(UserModel).filter(
-        UserModel.username == user.username).first()
+    existing_user = (
+        db.query(UserModel).filter(UserModel.username == user.username).first()
+    )
     if existing_user:
         raise HTTPException(status_code=400, detail="User already exists")
 
     # Create new user
     new_user = UserModel(
         username=user.username,
-        age=user.age,
+        date_of_birth=datetime.datetime.strptime(user.date_of_birth, "%d-%m-%Y").date(),
         password=user.password,
         status=False,  # mặc định
-        role=0         # mặc định
+        role=0,  # mặc định
     )
     db.add(new_user)
     db.commit()
@@ -52,7 +54,8 @@ def update_role(user_id: int, new_role: int, db: Session):
         raise HTTPException(status_code=404, detail="User not found")
     if not new_role:
         raise HTTPException(
-            status_code=404, detail="Role must be 0 (user) or 1 (admin)")
+            status_code=404, detail="Role must be 0 (user) or 1 (admin)"
+        )
     user.role = new_role
     db.commit()
     db.refresh(user)
@@ -87,8 +90,7 @@ def change_password(username: int, old_password: str, new_password: str, db: Ses
     if user.password == old_password:
         user.password = new_password
     else:
-        raise HTTPException(
-            status_code=400, detail="Old password is incorrect")
+        raise HTTPException(status_code=400, detail="Old password is incorrect")
     db.commit()
     db.refresh(user)
     return {"message": f"Change password success"}
