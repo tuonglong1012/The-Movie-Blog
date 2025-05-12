@@ -50,11 +50,6 @@ def get_character(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Character not found")
     return character
 
-# [GET]/api/movies
-@router.get("/movies", response_model=list[MovieOut])
-def list_movies(db: Session = Depends(get_db)):
-    return get_all_movies(db)
-
 # [POST]/api/movies/add-favorites-movies
 @router.post("/movies/add-favorites-movies", response_model=FavoriteOut)
 def add_favorite_movie(fav: FavoriteCreate, db: Session = Depends(get_db)):
