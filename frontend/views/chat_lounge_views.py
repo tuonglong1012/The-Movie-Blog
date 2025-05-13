@@ -30,7 +30,7 @@ class AnimeWatchApp(QMainWindow):
         self.init_ui()
 
     def open_chibichat_window(self):
-        from trangchu_views import AnimeListPage  
+        from anime_list_page import AnimeListPage  
         self.anime_list_window = AnimeListPage(chat_window=self)
         self.anime_list_window.show()
         self.hide()
@@ -487,7 +487,7 @@ class AnimeWatchApp(QMainWindow):
             self.set_thumbnail(frame, item.get("thumbnail_url", ""))
 
 if __name__ == "__main__":
-    from trangchu_views import AnimeListPage  
+    from anime_list_page import AnimeListPage  
     app = QApplication(sys.argv)
     chat_win = AnimeWatchApp()
     win = AnimeListPage(chat_window=chat_win)

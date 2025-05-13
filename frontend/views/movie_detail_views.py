@@ -1,8 +1,18 @@
-from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QComboBox, QSpinBox, QPushButton, QSizePolicy, QApplication, QScrollArea, QGridLayout, QFrame
+from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QComboBox, QSpinBox, QPushButton, QSizePolicy, QApplication, QScrollArea, QGridLayout, QFrame, QTextEdit
 from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtCore import Qt
 from base_window import BaseWindow
 import sys
+
+import os
+
+def load_pixmap(image_path):
+    pixmap = QPixmap()
+    if image_path.startswith("http"):
+        return pixmap
+    if os.path.exists(image_path):
+        pixmap.load(image_path)
+    return pixmap
 
 def load_anime_data(anime_id):
     return {
@@ -22,123 +32,283 @@ def load_anime_data(anime_id):
             "to understand humanity. As her long-lived race outlasts her companions, she reflects "
             "on the bonds they formed and seeks to create new ones in a changing world."
         ),
+
+        "review_stats": {
+            "recommended": 685,
+            "mixed": 118,
+            "not_recommended": 82
+        },
+
         "characters": [
             {
-                "name": "Frieren", "role": "Main", "image": "frieren.png",
-                "voice": {"name": "Tanezaki, Atsumi", "lang": "Japanese", "image": "atsumi.png"}
+                "name": "Frieren", "role": "Main", "image": "",
+                "voice": {"name": "Atsumi Tanezaki", "lang": "Japanese", "image": ""}
             },
             {
-                "name": "Fern", "role": "Main", "image": "fern.png",
-                "voice": {"name": "Ichinose, Kana", "lang": "Japanese", "image": "kana.png"}
+                "name": "Fern", "role": "Main", "image": "",
+                "voice": {"name": "Kana Ichinose", "lang": "Japanese", "image": ""}
+            },
+            {
+                "name": "Stark", "role": "Supporting", "image": "",
+                "voice": {"name": "Chiaki Kobayashi", "lang": "Japanese", "image": ""}
+            },
+            {
+                "name": "Heiter", "role": "Supporting", "image": "",
+                "voice": {"name": "Yuya Uchida", "lang": "Japanese", "image": ""}
+            },
+            {
+                "name": "Aura", "role": "Antagonist", "image": "",
+                "voice": {"name": "Mikako Komatsu", "lang": "Japanese", "image": ""}
+            },
+            {
+                "name": "Qual", "role": "Antagonist", "image": "",
+                "voice": {"name": "Tomokazu Sugita", "lang": "Japanese", "image": ""}
+            },
+            {
+                "name": "Kraft", "role": "Guest", "image": "",
+                "voice": {"name": "Yuuichi Nakamura", "lang": "Japanese", "image": ""}
+            },
+            {
+                "name": "Serie", "role": "Supporting", "image": "",
+                "voice": {"name": "Ayane Sakura", "lang": "Japanese", "image": ""}
+            },
+            {
+                "name": "Lugner", "role": "Villain", "image": "",
+                "voice": {"name": "Toshiyuki Morikawa", "lang": "Japanese", "image": ""}
+            },
+            {
+                "name": "Eisen", "role": "Mentor", "image": "",
+                "voice": {"name": "Houchuu Ootsuka", "lang": "Japanese", "image": ""}
+            }
+        ],
+        "reviews": [
+            {
+                "username": "chekkit",
+                "avatar": "",
+                "date": "Mar 22, 2024",
+                "tags": ["⭐ Recommended"],
+                "content": "I feel so catered to.\n\nThis anime has amazing plot, animation, and depth!"
+            },
+            {
+                "username": "CaptainKenshiro",
+                "avatar": "",
+                "date": "Mar 22, 2024",
+                "tags": ["⭐ Mixed Feelings", "😂 Funny"],
+                "content": "The story is solid, but it reminds me too much of Mahoutsukai no Yome."
             }
         ]
     }
 
+class ReviewWidget(QWidget):
+    def __init__(self, review_data):
+        super().__init__()
+        self.review_data = review_data
+
+        layout = QVBoxLayout(self)
+        layout.setSpacing(6)
+        layout.setContentsMargins(10, 10, 10, 10)
+
+        # Header
+        header_layout = QHBoxLayout()
+        avatar_label = QLabel()
+        avatar_label.setFixedSize(40, 40)
+        pixmap = load_pixmap(review_data.get("avatar", ""))
+        if pixmap.isNull():
+            avatar_label.setStyleSheet("background-color: #ccc;")
+        else:
+            avatar_label.setPixmap(pixmap.scaled(40, 40, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
+        user_label = QLabel(f"<b>{review_data['username']}</b>")
+        date_label = QLabel(review_data.get("date", ""))
+        date_label.setStyleSheet("color: #777; font-size: 8pt;")
+
+        header_layout.addWidget(avatar_label)
+        header_layout.addWidget(user_label)
+        header_layout.addStretch()
+        header_layout.addWidget(date_label)
+
+        # Tags
+        tag_layout = QHBoxLayout()
+        for tag in review_data.get("tags", []):
+            tag_label = QLabel(tag)
+            tag_label.setStyleSheet("""
+                QLabel {
+                    background-color: #e0e0e0;
+                    border-radius: 4px;
+                    padding: 2px 6px;
+                    font-size: 8pt;
+                    color: #444;
+                }
+            """)
+            tag_layout.addWidget(tag_label)
+        tag_layout.addStretch()
+
+        # Content
+        content_label = QLabel(review_data["content"])
+        content_label.setWordWrap(True)
+        content_label.setStyleSheet("font-size: 9pt; color: #333;")
+
+        # Actions
+        actions = QHBoxLayout()
+        reply_btn = QPushButton("💬 Reply")
+        reply_btn.setFixedHeight(24)
+        reply_btn.setStyleSheet("font-size: 9pt;")
+        reply_btn.clicked.connect(self.toggle_reply_box)
+
+        actions.addWidget(QLabel("❤️ 👍 ✍️"))
+        actions.addStretch()
+        actions.addWidget(reply_btn)
+
+        # Reply Box
+        self.reply_box = QTextEdit()
+        self.reply_box.setPlaceholderText("Write a reply...")
+        self.reply_box.setFixedHeight(60)
+        self.reply_box.setVisible(False)
+
+        layout.addLayout(header_layout)
+        layout.addLayout(tag_layout)
+        layout.addWidget(content_label)
+        layout.addLayout(actions)
+        layout.addWidget(self.reply_box)
+
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #fcfcfc;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+            }
+        """)
+
+    def toggle_reply_box(self):
+        self.reply_box.setVisible(not self.reply_box.isVisible())
+
 
 class AnimeDetailWindow(BaseWindow):
 
-    def build_character_voice_grid(self, characters):
-        grid = QGridLayout()
-        grid.setSpacing(20)
-        grid.setContentsMargins(0, 10, 0, 10)
-
-        def create_profile_cell(image_path, name, subtitle):
-            layout = QVBoxLayout()
-            layout.setSpacing(4)
-
-            image = QLabel()
-            pixmap = QPixmap(image_path)
-            image.setPixmap(pixmap.scaled(64, 90, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-            image.setFixedSize(64, 90)
-
-            name_label = QLabel(f"<b>{name}</b>")
-            subtitle_label = QLabel(subtitle)
-            name_label.setAlignment(Qt.AlignCenter)
-            subtitle_label.setAlignment(Qt.AlignCenter)
-            name_label.setStyleSheet("font-size: 9pt;")
-            subtitle_label.setStyleSheet("font-size: 8pt; color: #555;")
-
-            layout.addWidget(image)
-            layout.addWidget(name_label)
-            layout.addWidget(subtitle_label)
-
-            container = QFrame()
-            container.setLayout(layout)
-            container.setStyleSheet("""
-                QFrame {
-                    background-color: #fdfdfd;
-                    border: 1px solid #ccc;
-                    border-radius: 6px;
-                    padding: 6px;
-                }
-            """)
-            return container
-
-        for i, char in enumerate(characters):
-            char_cell = create_profile_cell(char["image"], char["name"], char["role"])
-            va = char.get("voice", {})
-            va_cell = create_profile_cell(va.get("image", ""), va.get("name", "N/A"), va.get("lang", "Unknown"))
-
-            grid.addWidget(char_cell, i, 0)
-            grid.addWidget(va_cell, i, 1)
-
-        return grid
-
     def build_review_list(self, reviews):
         layout = QVBoxLayout()
-        layout.setSpacing(20)
+        layout.setSpacing(10)
 
-        for review in reviews:
-            container = QFrame()
-            container.setStyleSheet("""
-                QFrame {
-                    background-color: #fcfcfc;
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
-                    padding: 10px;
-                }
-            """)
-            container_layout = QVBoxLayout(container)
-            container_layout.setSpacing(8)
-
-            header = QHBoxLayout()
-            avatar = QLabel()
-            avatar.setFixedSize(40, 40)
-            avatar.setPixmap(QPixmap(review["avatar"]).scaled(40, 40, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-            username = QLabel(f"<b>{review['username']}</b>")
-            date = QLabel(review["date"])
-            date.setStyleSheet("color: #888; font-size: 8pt;")
-            header.addWidget(avatar)
-            header.addWidget(username)
-            header.addStretch(1)
-            header.addWidget(date)
-
-            tag_line = QHBoxLayout()
-            for tag in review.get("tags", []):
-                tag_label = QLabel(tag)
-                tag_label.setStyleSheet("""
-                    QLabel {
-                        background-color: #e0e0e0;
-                        border-radius: 4px;
-                        padding: 2px 6px;
-                        font-size: 8pt;
-                        color: #444;
-                    }
-                """)
-                tag_line.addWidget(tag_label)
-            tag_line.addStretch(1)
-
-            content = QLabel(review["content"])
-            content.setWordWrap(True)
-            content.setStyleSheet("font-size: 9pt; color: #333;")
-
-            container_layout.addLayout(header)
-            container_layout.addLayout(tag_line)
-            container_layout.addWidget(content)
-            layout.addWidget(container)
+        for r in reviews:
+            widget = ReviewWidget(r)
+            layout.addWidget(widget)
 
         return layout
-    
+
+    def build_review_list(self, reviews):
+            layout = QVBoxLayout()
+            layout.setSpacing(20)
+
+            for review in reviews:
+                container = QFrame()
+                container.setStyleSheet("""
+                    QFrame {
+                        background-color: #fcfcfc;
+                        border: 1px solid #ddd;
+                        border-radius: 8px;
+                        padding: 10px;
+                    }
+                """)
+                container_layout = QVBoxLayout(container)
+                container_layout.setSpacing(8)
+
+                header = QHBoxLayout()
+                avatar = QLabel()
+                avatar.setFixedSize(40, 40)
+                avatar.setPixmap(QPixmap(review["avatar"]).scaled(40, 40, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+                username = QLabel(f"<b>{review['username']}</b>")
+                date = QLabel(review["date"])
+                date.setStyleSheet("color: #888; font-size: 8pt;")
+                header.addWidget(avatar)
+                header.addWidget(username)
+                header.addStretch(1)
+                header.addWidget(date)
+
+                tag_line = QHBoxLayout()
+                for tag in review.get("tags", []):
+                    tag_label = QLabel(tag)
+                    tag_label.setStyleSheet("""
+                        QLabel {
+                            background-color: #e0e0e0;
+                            border-radius: 4px;
+                            padding: 2px 6px;
+                            font-size: 8pt;
+                            color: #444;
+                        }
+                    """)
+                    tag_line.addWidget(tag_label)
+                tag_line.addStretch(1)
+
+                content = QLabel(review["content"])
+                content.setWordWrap(True)
+                content.setStyleSheet("font-size: 9pt; color: #333;")
+
+                container_layout.addLayout(header)
+                container_layout.addLayout(tag_line)
+                container_layout.addWidget(content)
+                layout.addWidget(container)
+
+            return layout
+
+    def build_character_voice_grid(self, characters):
+        layout = QGridLayout()
+        layout.setVerticalSpacing(10)
+        layout.setHorizontalSpacing(20)
+        layout.setContentsMargins(10, 10, 10, 10)
+
+        def create_profile(image_path, name, subtitle):
+            container = QWidget()
+            hbox = QHBoxLayout()
+            hbox.setSpacing(10)
+            hbox.setContentsMargins(4, 4, 4, 4)
+
+            image_label = QLabel()
+            pixmap = load_pixmap(image_path)
+            if pixmap.isNull():
+                image_label.setStyleSheet("background-color: #ccc; border: 1px solid #aaa;")
+            else:
+                image_label.setPixmap(pixmap.scaled(40, 54, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            image_label.setFixedSize(40, 54)
+
+            text_layout = QVBoxLayout()
+            name_label = QLabel(f"<b>{name}</b>")
+            subtitle_label = QLabel(f"<i>{subtitle}</i>")
+            subtitle_label.setStyleSheet("font-size: 8pt; color: #666;")
+            text_layout.addWidget(name_label)
+            text_layout.addWidget(subtitle_label)
+            text_layout.addStretch()
+
+            hbox.addWidget(image_label, alignment=Qt.AlignTop)
+            hbox.addLayout(text_layout)
+            container.setLayout(hbox)
+            return container
+
+        row = 0
+        for i in range(0, len(characters), 2):
+            # Left pair
+            if i < len(characters):
+                char = characters[i]
+                layout.addWidget(create_profile(char["image"], char["name"], char["role"]), row, 0)
+                va = char.get("voice", {})
+                layout.addWidget(create_profile(va.get("image", ""), va.get("name", "N/A"), va.get("lang", "Unknown")), row, 1)
+
+            # Vertical divider in the center
+            if i == 0:
+                divider = QLabel()
+                divider.setStyleSheet("background-color: #bbb;")
+                divider.setFixedWidth(1)
+                layout.addWidget(divider, 0, 2, len(characters)//2 + 1, 1)  # span multiple rows!
+
+            # Right pair
+            if i + 1 < len(characters):
+                char = characters[i + 1]
+                layout.addWidget(create_profile(char["image"], char["name"], char["role"]), row, 3)
+                va = char.get("voice", {})
+                layout.addWidget(create_profile(va.get("image", ""), va.get("name", "N/A"), va.get("lang", "Unknown")), row, 4)
+
+            row += 1
+
+        return layout    
 
     def __init__(self, anime_data, parent=None):
         super().__init__(
@@ -482,39 +652,33 @@ class AnimeDetailWindow(BaseWindow):
         char_grid = self.build_character_voice_grid(anime_data.get("characters", []))
         right_layout.addLayout(char_grid)
 
+        # --- Review Filter Header ---
+        review_stats = anime_data.get("review_stats", {})
+        filter_layout = QHBoxLayout()
+        filter_layout.setSpacing(15)
+
+        def create_filter_button(text, color):
+            label = QLabel(text)
+            label.setStyleSheet(f"color: {color}; font-weight: bold; font-size: 9pt;")
+            return label
+
+        total = sum(review_stats.values())
+        filter_layout.addWidget(create_filter_button(f"⭐ {review_stats.get('recommended', 0)} Recommended", "navy"))
+        filter_layout.addWidget(create_filter_button(f"☆ {review_stats.get('mixed', 0)} Mixed Feelings", "gray"))
+        filter_layout.addWidget(create_filter_button(f"✩ {review_stats.get('not_recommended', 0)} Not Recommended", "darkred"))
+        filter_layout.addStretch()
+        filter_layout.addWidget(QLabel(f"<a href='#'>All reviews ({total})</a>"))
+
+        right_layout.addSpacing(10)
+        right_layout.addLayout(filter_layout)
+
+        
         # Review Section
         reviews = anime_data.get("reviews", [])
         review_layout = self.build_review_list(reviews)
         right_layout.addSpacing(10)
         right_layout.addWidget(QLabel("Reviews"))
         right_layout.addLayout(review_layout)
-
-        for char in anime_data.get("characters", []):
-            row = QHBoxLayout()
-
-            char_img = QLabel()
-            pix = QPixmap(char["image"])
-            char_img.setPixmap(pix.scaled(60, 80, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-            char_img.setFixedSize(60, 80)
-            row.addWidget(char_img)
-
-            char_info = QLabel(f"<b>{char['name']}</b><br>{char['role']}")
-            char_info.setStyleSheet("font-size: 9pt;")
-            char_info.setFixedWidth(100)
-            row.addWidget(char_info)
-
-            va_img = QLabel()
-            pix = QPixmap(char['voice']['image'])
-            va_img.setPixmap(pix.scaled(60, 80, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-            va_img.setFixedSize(60, 80)
-            row.addWidget(va_img)
-
-            va_info = QLabel(f"{char['voice']['name']}<br><i>{char['voice']['lang']}</i>")
-            va_info.setStyleSheet("font-size: 9pt;")
-            row.addWidget(va_info)
-
-            row.setSpacing(15)
-            right_layout.addLayout(row)
 
         right_widget = QWidget()
         right_widget.setLayout(right_layout)
