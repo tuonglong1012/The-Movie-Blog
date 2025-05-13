@@ -25,3 +25,5 @@ Thumbs.db
 # venv or virtual environment
 venv/
 env/
+.jpg
+.sql

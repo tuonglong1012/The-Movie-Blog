@@ -3,9 +3,22 @@ from scrapy.crawler import CrawlerProcess
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..database import get_db
-from ..models.movie_models import Movie, MovieDetail, Character, Favorite, Rating
+from ..models.movie_models import (
+    Movie,
+    MovieDetail,
+    Character,
+    Favorite,
+    Rating,
+    Delete_Movie,
+)
 from ..models.reviews_models import MovieReview
-from ..schemas.movie_schemas import FavoriteCreate, RatingIn, FavoriteOut, MovieDetailOut, MovieIn
+from ..schemas.movie_schemas import (
+    FavoriteCreate,
+    RatingIn,
+    FavoriteOut,
+    MovieDetailOut,
+    MovieIn,
+)
 import json
 import os
 
@@ -13,16 +26,18 @@ router = APIRouter()
 
 
 def get_movie():
-    process = CrawlerProcess(settings={
-        "BOT_NAME": "myanimelist",
-        "ROBOTSTXT_OBEY": True,
-        "FEEDS": {
-            "data/data.json": {
-                "format": "json",
-                "overwrite": True,
+    process = CrawlerProcess(
+        settings={
+            "BOT_NAME": "myanimelist",
+            "ROBOTSTXT_OBEY": True,
+            "FEEDS": {
+                "data/data.json": {
+                    "format": "json",
+                    "overwrite": True,
+                },
             },
-        },
-    })
+        }
+    )
     process.crawl(TopanimeCraw1lSpider)
     process.start()  # the script will block here until the crawling is finished
     return "Crawling completed"
@@ -41,16 +56,14 @@ class TopanimeCraw1lSpider(scrapy.Spider):
         self.count += 1
 
         # Extract the anime titles and their corresponding URLs
-        urls = response.css(
-            ".anime_ranking_h3 a::attr(href)").getall()
+        urls = response.css(".anime_ranking_h3 a::attr(href)").getall()
 
         for url in urls:
             yield response.follow(url, self.parse_anime)
 
         # Extract the next page URL and follow it if it exists
         if response.css("a.next") and self.count < 2:
-            yield response.follow(
-                response.css("a.next::attr(href)").get(), self.parse)
+            yield response.follow(response.css("a.next::attr(href)").get(), self.parse)
 
     def parse_anime(self, response):
         # Extract the title, score, and rank
@@ -61,44 +74,48 @@ class TopanimeCraw1lSpider(scrapy.Spider):
 
         rank = response.css(".ranked strong::text").get().replace("#", "")
 
-        episodes = response.css(
-            "div.spaceit_pad:nth-child(18)::text").re_first(r'\d+')
+        episodes = response.css("div.spaceit_pad:nth-child(18)::text").re_first(r"\d+")
         if not episodes:
-            episodes = response.css(
-                "div.spaceit_pad:nth-child(17)::text").re_first(r'\d+')
+            episodes = response.css("div.spaceit_pad:nth-child(17)::text").re_first(
+                r"\d+"
+            )
 
-        status = response.css(
-            "div.spaceit_pad:nth-child(19)::text").getall()
+        status = response.css("div.spaceit_pad:nth-child(19)::text").getall()
 
-        Synopsis = response.css(
-            "p[itemprop=description]::text").getall()
+        Synopsis = response.css("p[itemprop=description]::text").getall()
 
         link = response.url
 
-        id = link.split('/')[4]
+        id = link.split("/")[4]
 
         test = {}
         for i, section in enumerate(response.css(".spaceit_pad")):
             if section and i != 2:
                 tilte = section.css(".dark_text::text").get()
                 test[tilte] = " ".join(
-                    [line.strip().replace("\"", "") for line in section.css("::text").getall() if line.strip()])
+                    [
+                        line.strip().replace('"', "")
+                        for line in section.css("::text").getall()
+                        if line.strip()
+                    ]
+                )
 
         characters = response.css("td.pb24 table")
 
         test["characters"] = {}
         for character in characters:
-            test["characters"][character.css(".h3_characters_voice_actors a::text").get()] = {
+            test["characters"][
+                character.css(".h3_characters_voice_actors a::text").get()
+            ] = {
                 "role": character.css(
-                    ".h3_characters_voice_actors + .spaceit_pad small::text").get(),
+                    ".h3_characters_voice_actors + .spaceit_pad small::text"
+                ).get(),
                 "link": character.css(
-                    ".h3_characters_voice_actors a::attr(href)").get(),
-                "voice_actor": character.css(
-                    "td.pr4 a::text").get(),
-                "voice_actor_link": character.css(
-                    "td.pr4 a::attr(href)").get(),
-                "voice_actor_country": character.css(
-                    "td.pr4 small::text").get(),
+                    ".h3_characters_voice_actors a::attr(href)"
+                ).get(),
+                "voice_actor": character.css("td.pr4 a::text").get(),
+                "voice_actor_link": character.css("td.pr4 a::attr(href)").get(),
+                "voice_actor_country": character.css("td.pr4 small::text").get(),
             }
 
         reviews = response.css(".review-element")
@@ -123,6 +140,7 @@ class TopanimeCraw1lSpider(scrapy.Spider):
             # "producer": producer,
         }
 
+
 # Làm sạch phần tử trong mảng []
 
 
@@ -142,6 +160,7 @@ def clean_text(movie):
     synopsis_text = " ".join(synopsis_text.split())
     return synopsis_text
 
+
 # Làm sạch phần tử status
 
 
@@ -155,6 +174,7 @@ def clean_status(status_raw):
         return status_raw.strip()
     return ""
 
+
 # Import json vào database
 
 
@@ -167,13 +187,15 @@ def import_movies(db: Session = Depends(get_db)):
 
         if not isinstance(movies_data, list):
             raise HTTPException(
-                status_code=400, detail="File JSON phải là danh sách các đối tượng.")
+                status_code=400, detail="File JSON phải là danh sách các đối tượng."
+            )
 
         for movie in movies_data:
             title = movie.get("title", "Unknown Title")
             if not title:
                 raise HTTPException(
-                    status_code=400, detail="Title is required for the movie.")
+                    status_code=400, detail="Title is required for the movie."
+                )
 
             # Thêm phim vào bảng movies
             movie_test = movie.get("test", {})
@@ -184,10 +206,8 @@ def import_movies(db: Session = Depends(get_db)):
                 episodes=movie.get("episodes"),
                 score=movie.get("score"),
                 type=movie_test.get("Type:", "").replace("Type:", "").strip(),
-                aired=movie_test.get("Aired:", "").replace(
-                    "Aired:", "").strip(),
-                members=movie_test.get("Members:", "").replace(
-                    "Members:", "").strip()
+                aired=movie_test.get("Aired:", "").replace("Aired:", "").strip(),
+                members=movie_test.get("Members:", "").replace("Members:", "").strip(),
             )
             db.add(newMovie)
             db.commit()
@@ -204,40 +224,44 @@ def import_movies(db: Session = Depends(get_db)):
                 episodes=movie.get("episodes"),
                 synopsis=clean_text(synopsis_raw),
                 link=movie.get("link"),
-                synonyms=movie_test.get("Synonyms:", "").replace(
-                    "Synonyms:", "").strip(),
-                japanese=movie_test.get("Japanese:", "").replace(
-                    "Japanese:", "").strip(),
+                synonyms=movie_test.get("Synonyms:", "")
+                .replace("Synonyms:", "")
+                .strip(),
+                japanese=movie_test.get("Japanese:", "")
+                .replace("Japanese:", "")
+                .strip(),
                 type=movie_test.get("Type:", "").replace("Type:", "").strip(),
-                aired=movie_test.get("Aired:", "").replace(
-                    "Aired:", "").strip(),
-                premiered=movie_test.get("Premiered:", "").replace(
-                    "Premiered:", "").strip(),
-                broadcast=movie_test.get("Broadcast:", "").replace(
-                    "Broadcast:", "").strip(),
-                producers=movie_test.get("Producers:", "").replace(
-                    "Producers:", "").strip(),
-                licensors=movie_test.get("Licensors:", "").replace(
-                    "Licensors:", "").strip(),
-                studios=movie_test.get("Studios:", "").replace(
-                    "Studios:", "").strip(),
-                source=movie_test.get("Source:", "").replace(
-                    "Source:", "").strip(),
-                genres=movie_test.get("Genres:", "").replace(
-                    "Genres:", "").strip(),
-                demographic=movie_test.get("Demographic:", "").replace(
-                    "Demographic:", "").strip(),
-                duration=movie_test.get("Duration:", "").replace(
-                    "Duration:", "").strip(),
-                rating=movie_test.get("Rating:", "").replace(
-                    "Rating:", "").strip(),
-                popularity=movie_test.get("Popularity:", "").replace(
-                    "Popularity:", "").strip(),
-                members=movie_test.get("Members:", "").replace(
-                    "Members:", "").strip(),
-                favorites=movie_test.get("Favorites:", "").replace(
-                    "Favorites:", "").strip(),
-                external_id=movie.get("id")
+                aired=movie_test.get("Aired:", "").replace("Aired:", "").strip(),
+                premiered=movie_test.get("Premiered:", "")
+                .replace("Premiered:", "")
+                .strip(),
+                broadcast=movie_test.get("Broadcast:", "")
+                .replace("Broadcast:", "")
+                .strip(),
+                producers=movie_test.get("Producers:", "")
+                .replace("Producers:", "")
+                .strip(),
+                licensors=movie_test.get("Licensors:", "")
+                .replace("Licensors:", "")
+                .strip(),
+                studios=movie_test.get("Studios:", "").replace("Studios:", "").strip(),
+                source=movie_test.get("Source:", "").replace("Source:", "").strip(),
+                genres=movie_test.get("Genres:", "").replace("Genres:", "").strip(),
+                demographic=movie_test.get("Demographic:", "")
+                .replace("Demographic:", "")
+                .strip(),
+                duration=movie_test.get("Duration:", "")
+                .replace("Duration:", "")
+                .strip(),
+                rating=movie_test.get("Rating:", "").replace("Rating:", "").strip(),
+                popularity=movie_test.get("Popularity:", "")
+                .replace("Popularity:", "")
+                .strip(),
+                members=movie_test.get("Members:", "").replace("Members:", "").strip(),
+                favorites=movie_test.get("Favorites:", "")
+                .replace("Favorites:", "")
+                .strip(),
+                external_id=movie.get("id"),
             )
             db.add(newMovieDetail)
             db.commit()
@@ -256,9 +280,7 @@ def import_movies(db: Session = Depends(get_db)):
                     link=character_data.get("link"),
                     voice_actor=character_data.get("voice_actor"),
                     voice_actor_link=character_data.get("voice_actor_link"),
-                    voice_actor_country=character_data.get(
-                        "voice_actor_country")
-
+                    voice_actor_country=character_data.get("voice_actor_country"),
                 )
                 db.add(newCharacter)
 
@@ -270,7 +292,6 @@ def import_movies(db: Session = Depends(get_db)):
                     username=username,
                     show_reviews=clean_text(review_data.get("show", "")),
                     hidden_reviews=clean_text(review_data.get("hidden", "")),
-
                 )
                 db.add(newReview)
 
@@ -280,25 +301,31 @@ def import_movies(db: Session = Depends(get_db)):
         return {"message": f"Đã thêm {len(movies_data)} phim vào cơ sở dữ liệu."}
 
     except FileNotFoundError:
-        raise HTTPException(
-            status_code=404, detail="Không tìm thấy file JSON.")
+        raise HTTPException(status_code=404, detail="Không tìm thấy file JSON.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
 # Lấy danh sách phim
 
 
 def get_all_movies(db: Session):
     return db.query(Movie).all()
+
+
 # Hàm lấy chi tiết phim theo id
 
 
 def get_movie_by_id(db: Session, id: int):
     return db.query(MovieDetail).filter(MovieDetail.movie_id == id).first()
+
+
 # Hàm lấy nhân vật phim theo id
 
 
 def get_character_by_id(db: Session, id: int):
     return db.query(Character).filter(Character.movie_detail_id == id).all()
+
 
 # Thêm phim vào danh sách yêu thích
 
@@ -311,19 +338,18 @@ def add_favorite(fav: FavoriteCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Movie not found")
 
     # Kiểm tra xem đã thêm rồi chưa
-    existing = db.query(Favorite).filter_by(
-        user_id=fav.user_id, movie_id=fav.movie_id).first()
+    existing = (
+        db.query(Favorite).filter_by(user_id=fav.user_id, movie_id=fav.movie_id).first()
+    )
     if existing:
         raise HTTPException(status_code=400, detail="Already in favorites")
 
-    new_fav = Favorite(
-        user_id=fav.user_id,
-        movie_id=fav.movie_id
-    )
+    new_fav = Favorite(user_id=fav.user_id, movie_id=fav.movie_id)
     db.add(new_fav)
     db.commit()
     db.refresh(new_fav)
     return new_fav
+
 
 # Lấy danh sách yêu thích theo user_id
 
@@ -332,12 +358,12 @@ def get_favorites_by_user(user_id: int, db: Session = Depends(get_db)):
     favorites = db.query(Favorite).filter(Favorite.user_id == user_id).all()
     return favorites
 
+
 # Xóa phim yêu thích theo user_id
 
 
 def delete_favorite(user_id: int, movie_id: int, db: Session = Depends(get_db)):
-    favorite = db.query(Favorite).filter_by(
-        user_id=user_id, movie_id=movie_id).first()
+    favorite = db.query(Favorite).filter_by(user_id=user_id, movie_id=movie_id).first()
 
     if not favorite:
         raise HTTPException(status_code=404, detail="Favorite movie not found")
@@ -347,9 +373,10 @@ def delete_favorite(user_id: int, movie_id: int, db: Session = Depends(get_db)):
     return {"message": "Favorite movie deleted successfully"}
 
 
-def add_movie(movie: MovieIn,  db: Session = Depends(get_db)):
-    existing_movie = db.query(Movie).filter(
-        Movie.external_id == movie.external_id).first()
+def add_movie(movie: MovieIn, db: Session = Depends(get_db)):
+    existing_movie = (
+        db.query(Movie).filter(Movie.external_id == movie.external_id).first()
+    )
     if existing_movie:
         raise HTTPException(status_code=400, detail="Movie already exists")
 
@@ -361,7 +388,7 @@ def add_movie(movie: MovieIn,  db: Session = Depends(get_db)):
         episodes=movie.episodes,
         aired=movie.aired,
         type=movie.type,
-        members=movie.members
+        members=movie.members,
     )
 
     db.add(new_movie)
@@ -394,7 +421,7 @@ def add_movie(movie: MovieIn,  db: Session = Depends(get_db)):
         rating=movie.rating,
         popularity=movie.popularity,
         members=movie.members,
-        external_id=movie.external_id
+        external_id=movie.external_id,
     )
 
     db.add(new_movie_detail)
@@ -404,11 +431,7 @@ def add_movie(movie: MovieIn,  db: Session = Depends(get_db)):
     return new_movie
 
 
-def update_movie(
-    id: int,
-    movie: MovieIn,
-    db: Session = Depends(get_db)
-):
+def update_movie(id: int, movie: MovieIn, db: Session = Depends(get_db)):
     existing_movie = db.query(Movie).filter(Movie.id == id).first()
     if not existing_movie:
         raise HTTPException(status_code=404, detail="Movie not found")
@@ -420,3 +443,22 @@ def update_movie(
     db.commit()
     db.refresh(existing_movie)
     return existing_movie
+
+
+def remove_movie(id: int, db: Session = Depends(get_db)):
+    existing_movie = db.query(Movie).filter(Movie.id == id).first()
+    if not existing_movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    deleted = Delete_Movie(
+        external_id=existing_movie.external_id,
+    )  # Replace 'movie_id' with the correct field name if needed
+    db.add(deleted)
+    db.delete(existing_movie)
+
+    db.commit()
+    return {"message": f"Movie {id} deleted successfully"}
+
+
+def get_delete_movie_external_id(db: Session = Depends(get_db)):
+    return [str(movie.external_id) for movie in db.query(Delete_Movie).all()]
