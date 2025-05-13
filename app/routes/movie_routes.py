@@ -30,8 +30,6 @@ from typing import List
 router = APIRouter()
 
 # [POST]/api/import-json
-
-
 @router.post("/import-json")
 def import_from_json(db: Session = Depends(get_db)):
     return import_movies(db)
@@ -50,16 +48,11 @@ def fetch_import(db: Session = Depends(get_db)):
     return {"message": "Hoàn tất import", "import": response.json()}
 
 # [GET]/api/movies
-
-
 @router.get("/movies", response_model=list[MovieOut])
 def list_movies(db: Session = Depends(get_db)):
     return get_all_movies(db)
 
-
 # [GET]/api/movies/:id
-
-
 @router.get("/movies/{id}/movie-detail", response_model=MovieDetailOut)
 def detail_movie(id: int, db: Session = Depends(get_db)):
     movie = get_movie_by_id(db, id)
@@ -69,8 +62,6 @@ def detail_movie(id: int, db: Session = Depends(get_db)):
 
 
 # [GET]/api/movies/:id/character
-
-
 @router.get("/movie/{id}/character", response_model=List[CharacterOut])
 def get_character(id: int, db: Session = Depends(get_db)):
     character = get_character_by_id(db, id)
@@ -78,18 +69,7 @@ def get_character(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Character not found")
     return character
 
-
-# [GET]/api/movies
-
-
-@router.get("/movies", response_model=list[MovieOut])
-def list_movies(db: Session = Depends(get_db)):
-    return get_all_movies(db)
-
-
 # [POST]/api/movies/add-favorites-movies
-
-
 @router.post("/movies/add-favorites-movies", response_model=FavoriteOut)
 def add_favorite_movie(fav: FavoriteCreate, db: Session = Depends(get_db)):
     return add_favorite(fav, db)

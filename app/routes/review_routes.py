@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..database import get_db
 from ..schemas.review_schemas import ReviewOut,ReviewCreate
-from ..controllers.review_controller import get_review_by_id,create_review,delete_review
+from ..controllers.review_controller import get_review_by_id,create_review,delete_review,get_review_by_user
 import requests
 from typing import List
 
@@ -17,8 +17,8 @@ def get_review(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Review not found")
     return review
 @router.get("/review/{id}/review-by-user", response_model=List[ReviewOut])
-def get_review_by_user(id: int, db: Session = Depends(get_db)):
-    review_user = get_review_by_id(db, id)
+def get_review_by_user_id(id: int, db: Session = Depends(get_db)):
+    review_user = get_review_by_user(db, id)
     if review_user is None:
         raise HTTPException(status_code=404, detail="Review not found")
     return review_user

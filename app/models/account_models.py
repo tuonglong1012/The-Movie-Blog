@@ -7,7 +7,7 @@ from sqlalchemy import (
     TIMESTAMP,
     Float,
     Boolean,
-    DATE,
+    Date,
 )
 from ..database import Base
 
@@ -17,7 +17,7 @@ class UserModel(Base):
 
     id = Column(Integer, primary_key=True)
     username = Column(String, nullable=True)
-    date_of_birth = Column(DATE, nullable=True)
+    date_of_birth = Column(Date, nullable=False)
     password = Column(String, nullable=True)
     status = Column(Boolean, default=False)
     role = Column(Integer, default=0)

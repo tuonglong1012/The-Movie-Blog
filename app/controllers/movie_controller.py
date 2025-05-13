@@ -162,8 +162,6 @@ def clean_text(movie):
 
 
 # Làm sạch phần tử status
-
-
 def clean_status(status_raw):
     if isinstance(status_raw, list):
         # Lọc bỏ chuỗi rỗng và loại bỏ ký tự xuống dòng/thừa khoảng trắng
@@ -177,7 +175,8 @@ def clean_status(status_raw):
 
 # Import json vào database
 def import_movies(db: Session = Depends(get_db)):
-    json_path = os.path.join("data", "test1.json")
+    current_dir = os.path.dirname(__file__)
+    json_path = os.path.abspath(os.path.join(current_dir, "../../data/data.json"))
 
     try:
         with open(json_path, "r", encoding="UTF-8") as f:

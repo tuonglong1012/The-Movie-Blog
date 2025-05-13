@@ -37,7 +37,7 @@ def create_review(review: ReviewCreate, db: Session):
     db.refresh(new_review)
     return new_review
 # Hàm lấy review theo id phim
-def get_review_by_id(db: Session, id: int):
+def get_review_by_user(db: Session, id: int):
     return db.query(MovieReview).filter(MovieReview.user_id == id).all()
 # Hàm lấy review theo id phim
 def get_review_by_id(db: Session, id: int):
