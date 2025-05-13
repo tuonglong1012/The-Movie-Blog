@@ -1,4 +1,14 @@
-from sqlalchemy import Column, Integer, String, Text, ARRAY, TIMESTAMP, Float, Boolean, ForeignKey
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    ARRAY,
+    TIMESTAMP,
+    Float,
+    Boolean,
+    ForeignKey,
+)
 from ..database import Base
 
 
@@ -17,7 +27,7 @@ class Movie(Base):
 
 
 class MovieDetail(Base):
-    __tablename__ = 'movies_detail'
+    __tablename__ = "movies_detail"
 
     id = Column(Integer, primary_key=True)
     movie_id = Column(Integer, nullable=False)
@@ -49,7 +59,7 @@ class MovieDetail(Base):
 
 
 class Character(Base):
-    __tablename__ = 'movies_characters'
+    __tablename__ = "movies_characters"
 
     id = Column(Integer, primary_key=True)
     movie_detail_id = Column(Integer, nullable=False)
@@ -67,7 +77,8 @@ class Favorite(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("account.id"), nullable=False)
     movie_id = Column(Integer, ForeignKey("movies.id"), nullable=False)
-    
+
+
 class Rating(Base):
     __tablename__ = "movies_rating"
 
@@ -76,3 +87,9 @@ class Rating(Base):
     movie_id = Column(Integer, nullable=False)
     rating = Column(Float, nullable=False)
 
+
+class Delete_Movie(Base):
+    __tablename__ = "movies_delete"
+
+    id = Column(Integer, primary_key=True)
+    external_id = Column(Integer, ForeignKey("movies.external_id"), nullable=False)

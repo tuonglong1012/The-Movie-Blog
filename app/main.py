@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from .database import engine, Base
+from .controllers.movie_controller import get_delete_movie_external_id
 from .routes import movie_routes, account_routes, review_routes
 import os
 import subprocess
@@ -26,21 +27,20 @@ app.include_router(review_routes.router, prefix="/api", tags=["Review"])
 def read_root():
     return {"message": "API phim đang hoạt động!"}
 
-# run scrapyd and scrapyd-deploy
 
-# filepath: /home/TP/The-Movie-Blog/app/main.py
+# run scrapyd and scrapyd-deploy
 
 
 def run_scrapyd_and_deploy():
     try:
         # Set the working directory to the Scrapy project folder
-        scrapy_project_path = os.path.join(
-            os.path.dirname(__file__), "../myanimelist")
+        scrapy_project_path = os.path.join(os.path.dirname(__file__), "../myanimelist")
         os.chdir(scrapy_project_path)
 
         # Start scrapyd
-        subprocess.Popen(["scrapyd"], stdout=subprocess.DEVNULL,
-                         stderr=subprocess.DEVNULL)
+        subprocess.Popen(
+            ["scrapyd"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
 
         # Deploy the scrapy project
         subprocess.run(["scrapyd-deploy", "default"], check=True)
