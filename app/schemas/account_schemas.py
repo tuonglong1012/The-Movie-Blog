@@ -4,7 +4,7 @@ from typing import Optional
 
 class UserCreate(BaseModel):
     username: str
-    age: Optional[int]
+    date_of_birth: str
     password: str
 
     class Config:
@@ -31,7 +31,7 @@ class ChangeUserPassword(BaseModel):
 class UserOut(BaseModel):
     id: int
     username: str
-    age: int
+    date_of_birth: str
     status: bool
     role: int
 

@@ -16,6 +16,12 @@ def get_review(id: int, db: Session = Depends(get_db)):
     if review is None:
         raise HTTPException(status_code=404, detail="Review not found")
     return review
+@router.get("/review/{id}/review-by-user", response_model=List[ReviewOut])
+def get_review_by_user(id: int, db: Session = Depends(get_db)):
+    review_user = get_review_by_id(db, id)
+    if review_user is None:
+        raise HTTPException(status_code=404, detail="Review not found")
+    return review_user
 # [POST]/api/review/{id}/review-by-user
 @router.post("/review/create/{id}", response_model=ReviewOut)
 def get_review(review: ReviewCreate, db: Session = Depends(get_db)):
