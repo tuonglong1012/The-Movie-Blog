@@ -27,3 +27,6 @@ venv/
 env/
 .jpg
 .sql
+
+# Custom folders
+myanimelist/
