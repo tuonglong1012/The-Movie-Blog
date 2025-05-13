@@ -7,8 +7,8 @@ from PyQt5.QtGui import QFont, QPainter, QColor, QPen
 from PyQt5.QtCore import Qt, pyqtSignal
 from base_window import BaseWindow
 import sys
-from chat_lounge import AnimeWatchApp
-from anime_detail import AnimeDetailWindow
+from .chat_lounge_views import AnimeWatchApp
+from .movie_detail_views import AnimeDetailWindow
 
 
 class ClickableLabel(QLabel):
