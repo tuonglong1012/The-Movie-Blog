@@ -14,6 +14,8 @@ def load_pixmap(image_path):
         pixmap.load(image_path)
     return pixmap
 
+# API thông tin phim, nhân vật, diễn viên
+# Thay thế bằng API thực tế
 def load_anime_data(anime_id):
     return {
         "title": "Sousou no Frieren",
@@ -104,9 +106,9 @@ class ReviewWidget(QWidget):
         super().__init__()
         self.review_data = review_data
 
-        layout = QVBoxLayout(self)
-        layout.setSpacing(6)
-        layout.setContentsMargins(10, 10, 10, 10)
+        self.layout = QVBoxLayout(self)
+        self.layout.setSpacing(6)
+        self.layout.setContentsMargins(10, 10, 10, 10)
 
         # Header
         header_layout = QHBoxLayout()
@@ -148,28 +150,27 @@ class ReviewWidget(QWidget):
         content_label.setWordWrap(True)
         content_label.setStyleSheet("font-size: 9pt; color: #333;")
 
-        # Actions
-        actions = QHBoxLayout()
-        reply_btn = QPushButton("💬 Reply")
-        reply_btn.setFixedHeight(24)
-        reply_btn.setStyleSheet("font-size: 9pt;")
-        reply_btn.clicked.connect(self.toggle_reply_box)
-
-        actions.addWidget(QLabel("❤️ 👍 ✍️"))
-        actions.addStretch()
-        actions.addWidget(reply_btn)
-
         # Reply Box
         self.reply_box = QTextEdit()
         self.reply_box.setPlaceholderText("Write a reply...")
         self.reply_box.setFixedHeight(60)
         self.reply_box.setVisible(False)
 
-        layout.addLayout(header_layout)
-        layout.addLayout(tag_layout)
-        layout.addWidget(content_label)
-        layout.addLayout(actions)
-        layout.addWidget(self.reply_box)
+        self.send_button = QPushButton("Send")
+        self.send_button.setFixedHeight(24)
+        self.send_button.setVisible(False)
+        self.send_button.clicked.connect(self.send_reply)
+
+        self.replies_container = QVBoxLayout()
+        self.replies_container.setSpacing(4)
+
+        self.layout.addLayout(header_layout)
+        self.layout.addLayout(tag_layout)
+        self.layout.addWidget(content_label)
+        self.layout.addLayout(actions)
+        self.layout.addWidget(self.reply_box)
+        self.layout.addWidget(self.send_button)
+        self.layout.addLayout(self.replies_container)
 
         self.setStyleSheet("""
             QWidget {
@@ -180,75 +181,159 @@ class ReviewWidget(QWidget):
         """)
 
     def toggle_reply_box(self):
-        self.reply_box.setVisible(not self.reply_box.isVisible())
+        is_visible = self.reply_box.isVisible()
+        self.reply_box.setVisible(not is_visible)
+        self.send_button.setVisible(not is_visible)
+
+    def send_reply(self):
+        text = self.reply_box.toPlainText().strip()
+        if text:
+            reply_label = QLabel(f"<i>You replied:</i> {text}")
+            reply_label.setStyleSheet("font-size: 8pt; color: #444; margin-left: 15px;")
+            reply_label.setWordWrap(True)
+            self.replies_container.addWidget(reply_label)
+            self.reply_box.clear()
+            self.reply_box.setVisible(False)
+            self.send_button.setVisible(False)
 
 
 class AnimeDetailWindow(BaseWindow):
 
     def build_review_list(self, reviews):
         layout = QVBoxLayout()
-        layout.setSpacing(10)
+        layout.setSpacing(20)
 
-        for r in reviews:
-            widget = ReviewWidget(r)
-            layout.addWidget(widget)
+        self.current_reply_box = None
+        self.current_send_button = None
 
-        return layout
+        for review in reviews:
+            container = QFrame()
+            container.setStyleSheet("""
+                QFrame {
+                    background-color: #fcfcfc;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    padding: 10px;
+                }
+            """)
+            container_layout = QVBoxLayout(container)
+            container_layout.setSpacing(8)
 
-    def build_review_list(self, reviews):
-            layout = QVBoxLayout()
-            layout.setSpacing(20)
+            # Header
+            header = QHBoxLayout()
+            avatar = QLabel()
+            avatar.setFixedSize(40, 40)
+            avatar.setStyleSheet("background-color: #ccc; border: 1px solid #aaa;")
+            username = QLabel(f"<b>{review['username']}</b>")
+            date = QLabel(review["date"])
+            date.setStyleSheet("color: #888; font-size: 8pt;")
+            header.addWidget(avatar)
+            header.addWidget(username)
+            header.addStretch()
+            header.addWidget(date)
 
-            for review in reviews:
-                container = QFrame()
-                container.setStyleSheet("""
-                    QFrame {
-                        background-color: #fcfcfc;
-                        border: 1px solid #ddd;
-                        border-radius: 8px;
-                        padding: 10px;
+            # Tags
+            tag_line = QHBoxLayout()
+            for tag in review.get("tags", []):
+                tag_label = QLabel(tag)
+                tag_label.setStyleSheet("""
+                    QLabel {
+                        background-color: #e0e0e0;
+                        border-radius: 4px;
+                        padding: 2px 6px;
+                        font-size: 8pt;
+                        color: #444;
                     }
                 """)
-                container_layout = QVBoxLayout(container)
-                container_layout.setSpacing(8)
+                tag_line.addWidget(tag_label)
+            tag_line.addStretch()
 
-                header = QHBoxLayout()
-                avatar = QLabel()
-                avatar.setFixedSize(40, 40)
-                avatar.setPixmap(QPixmap(review["avatar"]).scaled(40, 40, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-                username = QLabel(f"<b>{review['username']}</b>")
-                date = QLabel(review["date"])
-                date.setStyleSheet("color: #888; font-size: 8pt;")
-                header.addWidget(avatar)
-                header.addWidget(username)
-                header.addStretch(1)
-                header.addWidget(date)
+            # Content
+            content = QLabel(review["content"])
+            content.setWordWrap(True)
+            content.setStyleSheet("font-size: 9pt; color: #333;")
 
-                tag_line = QHBoxLayout()
-                for tag in review.get("tags", []):
-                    tag_label = QLabel(tag)
-                    tag_label.setStyleSheet("""
-                        QLabel {
-                            background-color: #e0e0e0;
-                            border-radius: 4px;
-                            padding: 2px 6px;
-                            font-size: 8pt;
-                            color: #444;
-                        }
-                    """)
-                    tag_line.addWidget(tag_label)
-                tag_line.addStretch(1)
+            # Reply input
+            reply_box = QTextEdit()
+            reply_box.setPlaceholderText("Write a reply...")
+            reply_box.setFixedHeight(60)
+            reply_box.setVisible(False)
 
-                content = QLabel(review["content"])
-                content.setWordWrap(True)
-                content.setStyleSheet("font-size: 9pt; color: #333;")
+            send_button = QPushButton("Send")
+            send_button.setVisible(False)
+            send_button.setFixedHeight(30)
+            send_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #2e51a2;
+                    color: white;
+                    font-size: 9pt;
+                    padding: 4px 10px;
+                    border-radius: 4px;
+                }
+                QPushButton:hover {
+                    background-color: #3b66cc;
+                }
+            """)
 
-                container_layout.addLayout(header)
-                container_layout.addLayout(tag_line)
-                container_layout.addWidget(content)
-                layout.addWidget(container)
+            reply_area = QVBoxLayout()
+            reply_area.setSpacing(4)
 
-            return layout
+            # Actions layout
+            actions = QHBoxLayout()
+            actions.addStretch()
+            reply_btn = QPushButton("💬 Reply")
+            reply_btn.setFixedHeight(24)
+            reply_btn.setStyleSheet("font-size: 9pt;")
+            actions.addWidget(reply_btn)
+
+            # Toggle behavior
+            def handle_reply_toggle(rb=reply_box, sb=send_button):
+                def toggle():
+                    # Close previous reply box if needed
+                    if self.current_reply_box and self.current_reply_box is not rb:
+                        self.current_reply_box.setVisible(False)
+                        self.current_send_button.setVisible(False)
+
+                    # Toggle current
+                    is_open = not rb.isVisible()
+                    rb.setVisible(is_open)
+                    sb.setVisible(is_open)
+
+                    self.current_reply_box = rb if is_open else None
+                    self.current_send_button = sb if is_open else None
+                return toggle
+
+            # Send reply action
+            def handle_send(rb=reply_box, ra=reply_area, sb=send_button):
+                def send():
+                    text = rb.toPlainText().strip()
+                    if text:
+                        reply_label = QLabel(f"<i>You replied:</i> {text}")
+                        reply_label.setStyleSheet("font-size: 8pt; color: #444; margin-left: 15px;")
+                        reply_label.setWordWrap(True)
+                        ra.addWidget(reply_label)
+                        rb.clear()
+                        rb.setVisible(False)
+                        sb.setVisible(False)
+                        self.current_reply_box = None
+                        self.current_send_button = None
+                return send
+
+            reply_btn.clicked.connect(handle_reply_toggle())
+            send_button.clicked.connect(handle_send())
+
+            # Add widgets
+            container_layout.addLayout(header)
+            container_layout.addLayout(tag_line)
+            container_layout.addWidget(content)
+            container_layout.addLayout(actions)
+            container_layout.addWidget(reply_box)
+            container_layout.addWidget(send_button)
+            container_layout.addLayout(reply_area)
+
+            layout.addWidget(container)
+
+        return layout
 
     def build_character_voice_grid(self, characters):
         layout = QGridLayout()
@@ -652,7 +737,7 @@ class AnimeDetailWindow(BaseWindow):
         char_grid = self.build_character_voice_grid(anime_data.get("characters", []))
         right_layout.addLayout(char_grid)
 
-        # --- Review Filter Header ---
+        # Review Filter Header
         review_stats = anime_data.get("review_stats", {})
         filter_layout = QHBoxLayout()
         filter_layout.setSpacing(15)
@@ -668,14 +753,109 @@ class AnimeDetailWindow(BaseWindow):
         filter_layout.addWidget(create_filter_button(f"✩ {review_stats.get('not_recommended', 0)} Not Recommended", "darkred"))
         filter_layout.addStretch()
         filter_layout.addWidget(QLabel(f"<a href='#'>All reviews ({total})</a>"))
-
-        right_layout.addSpacing(10)
-        right_layout.addLayout(filter_layout)
-
         
         # Review Section
         reviews = anime_data.get("reviews", [])
         review_layout = self.build_review_list(reviews)
+
+        # Create review frame function
+        def create_review_frame(review):
+            container = QFrame()
+            container.setStyleSheet("""
+                QFrame {
+                    background-color: #fcfcfc;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    padding: 10px;
+                }
+            """)
+            container_layout = QVBoxLayout(container)
+            container_layout.setSpacing(8)
+
+            header = QHBoxLayout()
+            avatar = QLabel()
+            avatar.setFixedSize(40, 40)
+            avatar.setStyleSheet("background-color: #ccc;")  
+            username = QLabel(f"<b>{review['username']}</b>")
+            date = QLabel(review["date"])
+            date.setStyleSheet("color: #888; font-size: 8pt;")
+            header.addWidget(avatar)
+            header.addWidget(username)
+            header.addStretch(1)
+            header.addWidget(date)
+
+            tag_line = QHBoxLayout()
+            for tag in review.get("tags", []):
+                tag_label = QLabel(tag)
+                tag_label.setStyleSheet("""
+                    QLabel {
+                        background-color: #e0e0e0;
+                        border-radius: 4px;
+                        padding: 2px 6px;
+                        font-size: 8pt;
+                        color: #444;
+                    }
+                """)
+                tag_line.addWidget(tag_label)
+            tag_line.addStretch(1)
+
+            content = QLabel(review["content"])
+            content.setWordWrap(True)
+            content.setStyleSheet("font-size: 9pt; color: #333;")
+
+            container_layout.addLayout(header)
+            container_layout.addLayout(tag_line)
+            container_layout.addWidget(content)
+
+            return container
+
+        # Write Review Section (viết )
+        write_review_box = QTextEdit()
+        write_review_box.setPlaceholderText("Write your own review...")
+        write_review_box.setFixedHeight(100)
+        write_review_box.setStyleSheet("font-size: 10pt;")
+
+        submit_button = QPushButton("Submit Review")
+        submit_button.setStyleSheet("""
+            QPushButton {
+                background-color: #2e51a2;
+                color: white;
+                padding: 6px 12px;
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #3e61b2;
+            }
+        """)
+
+        def submit_review():
+            new_content = write_review_box.toPlainText().strip()
+            if not new_content:
+                return
+
+            new_review = {
+                "username": "You",
+                "avatar": "",
+                "date": "Today",
+                "tags": ["⭐ Your Review"],
+                "content": new_content
+            }
+
+            review_widget = create_review_frame(new_review)
+            review_layout.addWidget(review_widget)
+            write_review_box.clear()
+
+        submit_button.clicked.connect(submit_review)
+
+        # Add filter, then write section, then reviews
+        right_layout.addSpacing(10)
+        right_layout.addLayout(filter_layout)
+
+        right_layout.addSpacing(10)
+        right_layout.addWidget(QLabel("Write a Review"))
+        right_layout.addWidget(write_review_box)
+        right_layout.addWidget(submit_button)
+
         right_layout.addSpacing(10)
         right_layout.addWidget(QLabel("Reviews"))
         right_layout.addLayout(review_layout)
@@ -688,7 +868,7 @@ class AnimeDetailWindow(BaseWindow):
 
         scroll_widget = QWidget()
         scroll_widget.setLayout(content_layout)
-        scroll_widget.setMinimumWidth(1000)  # Ensures scrollbar appears if content overflows
+        scroll_widget.setMinimumWidth(1000) 
 
         scroll_area = QScrollArea()
         scroll_area.setFrameShape(QScrollArea.NoFrame)
@@ -729,18 +909,16 @@ class AnimeDetailWindow(BaseWindow):
         self.setStyleSheet("QWidget { border: none; }")
 
     def return_to_list(self):
-        from frontend.views.trangchu.trangchu_views import AnimeListPage
+        from trangchu_views import AnimeListPage
         list_window = AnimeListPage(chat_window=None)
         list_window.show()
         self.close()
 
+    def watch_episode(self):
+        # Example base URL###########################################
+        base_url = "https://example.com/anime/frieren/episode/"
+        
+        episode_num = self.episode_spin.value()
+        full_url = f"{base_url}{episode_num}"
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    anime_data = load_anime_data(anime_id="frieren")
-    window = AnimeDetailWindow(anime_data)
-    screen = app.primaryScreen()
-    rect = screen.availableGeometry()
-    window.setGeometry(rect)
-    window.show()
-    sys.exit(app.exec_())
+        QDesktopServices.openUrl(QUrl(full_url))
