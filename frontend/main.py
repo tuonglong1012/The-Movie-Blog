@@ -1,8 +1,8 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QStackedWidget
-from views.login_views import LoginDialog
-from views.signup_views import SignUpDialog
-from views.trangchu_views import AnimeListPage  
+from frontend.views.account_views.login_views import LoginDialog
+from frontend.views.account_views.signup_views import SignUpDialog
+from frontend.views.trangchu.trangchu_views import AnimeListPage  
 
 
 class MainWindow(QMainWindow):

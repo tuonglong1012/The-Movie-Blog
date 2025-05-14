@@ -729,7 +729,7 @@ class AnimeDetailWindow(BaseWindow):
         self.setStyleSheet("QWidget { border: none; }")
 
     def return_to_list(self):
-        from trangchu_views import AnimeListPage
+        from frontend.views.trangchu.trangchu_views import AnimeListPage
         list_window = AnimeListPage(chat_window=None)
         list_window.show()
         self.close()

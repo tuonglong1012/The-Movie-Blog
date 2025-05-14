@@ -7,10 +7,17 @@ from PyQt5.QtGui import QFont, QPainter, QColor, QPen
 from PyQt5.QtCore import Qt, pyqtSignal
 from base_window import BaseWindow
 import sys
-from .chat_lounge_views import AnimeWatchApp
-from .movie_detail_views import AnimeDetailWindow
+from ..chat_lounge_views import AnimeWatchApp
+from ..movie_detail_views import AnimeDetailWindow
+from controllers.trangchu_controller import get_all_movies
 
 
+movies = get_all_movies()
+if "error" in movies:
+    print("Lỗi:", movies["error"])
+else:
+    for movie in movies:
+        print(movie["title"], "-", movie["score"])
 class ClickableLabel(QLabel):
     clicked = pyqtSignal()
 
