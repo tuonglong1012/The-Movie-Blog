@@ -12,6 +12,8 @@ class LoginDialog(QDialog):
         self.setWindowTitle("Login")
         self.resize(380, 260)
         self.setModal(True)
+        
+        self.user_info = None 
 
         main = QVBoxLayout(self)
         main.setContentsMargins(12, 12, 12, 12)
