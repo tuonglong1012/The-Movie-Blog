@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QComboBox, QSpinBox, QPushButton, QSizePolicy, QApplication, QScrollArea, QGridLayout, QFrame, QTextEdit
-from PyQt5.QtGui import QPixmap, QFont
-from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPixmap, QFont, QDesktopServices
+from PyQt5.QtCore import Qt, QUrl
 from base_window import BaseWindow
 import sys
 
@@ -149,7 +149,16 @@ class ReviewWidget(QWidget):
         content_label = QLabel(review_data["content"])
         content_label.setWordWrap(True)
         content_label.setStyleSheet("font-size: 9pt; color: #333;")
+        # Actions
+        actions = QHBoxLayout()
+        reply_btn = QPushButton("💬 Reply")
+        reply_btn.setFixedHeight(24)
+        reply_btn.setStyleSheet("font-size: 9pt;")
+        reply_btn.clicked.connect(self.toggle_reply_box)
 
+        actions.addWidget(QLabel("❤️ 👍 ✍️"))
+        actions.addStretch()
+        actions.addWidget(reply_btn)
         # Reply Box
         self.reply_box = QTextEdit()
         self.reply_box.setPlaceholderText("Write a reply...")
@@ -395,6 +404,7 @@ class AnimeDetailWindow(BaseWindow):
 
         return layout    
 
+# nút back return trang trước
     def __init__(self, anime_data, parent=None):
         super().__init__(
             user_info=parent.user_info if parent else None,
@@ -909,7 +919,7 @@ class AnimeDetailWindow(BaseWindow):
         self.setStyleSheet("QWidget { border: none; }")
 
     def return_to_list(self):
-        from trangchu_views import AnimeListPage
+        from .trangchu.trangchu_views import AnimeListPage
         list_window = AnimeListPage(chat_window=None)
         list_window.show()
         self.close()

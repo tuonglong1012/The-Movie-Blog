@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QStackedWidg
 from views.account_views.login_views import LoginDialog
 from views.account_views.signup_views import SignUpDialog
 from views.trangchu.trangchu_views import AnimeListPage  
+from views.chat_lounge_views import AnimeWatchApp
 
 
 class MainWindow(QMainWindow):
@@ -47,7 +48,20 @@ class MainWindow(QMainWindow):
             self.open_home_page()
         else:
             self.close()
+            
+    def open_home_page(self):
+        self.home_page = AnimeListPage(main_window=self)
+        self.central_widget.addWidget(self.home_page)
+        self.central_widget.setCurrentWidget(self.home_page)
+
     
+    def go_to_chat(self):
+        self.main_window.open_chat_page()
+    
+    def return_to_chat(self):
+        if self.chat_window:
+            self.chat_window.show()
+        self.close()
 
 
 

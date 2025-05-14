@@ -7,7 +7,7 @@ from PyQt5.QtGui import QFont, QPainter, QColor, QPen
 from PyQt5.QtCore import Qt, pyqtSignal
 from base_window import BaseWindow
 import sys
-from ..chat_lounge_views import AnimeWatchApp
+from ..chat_lounge_views import AnimeWatchApp, ClickableLabel
 from ..movie_detail_views import AnimeDetailWindow
 from controllers.trangchu_controller import get_all_movies
 
@@ -160,19 +160,43 @@ class AddAnimeDialog(QDialog):
             "score": self.score_combo.currentText() if self.score_combo.currentIndex() != 0 else None
         }
 
+
 class AnimeListPage(BaseWindow):
-    def __init__(self, parent=None, chat_window=None):
+    def __init__(self, main_window=None, chat_window=None):
         super().__init__(
-            user_info=parent.user_info if parent else None,
+            user_info=main_window.user_info if main_window else None,
             avatar_pixmap=chat_window.avatar_pixmap if chat_window else None
         )
-        self.chat_window = chat_window
-        self.setWindowTitle("Anime List")
-        self.showMaximized()
 
+        chibi_label = ClickableLabel("ChibiChat")
+        chibi_label.setFont(QFont("Matura MT Script Capitals", 20, QFont.Bold))
+        chibi_label.setStyleSheet("color: #000; background-color:  #B0E0E6; border-radius: 15px; margin-right: 2px")
+        chibi_label.clicked.connect(self.return_to_chat)
+
+        header_widget = self.centralWidget().layout().itemAt(0).widget()
+        header_layout = header_widget.layout()
+        old_label = header_layout.itemAt(0).widget()
+        header_layout.replaceWidget(old_label, chibi_label)
+        old_label.deleteLater()
+
+        self.main_window = main_window
         self.chat_window = chat_window
-        self.setWindowTitle("Anime List")
-        self.showMaximized()
+
+        for widget in self.findChildren(QLabel):
+            if widget.text() == "ChibiChat":
+                clickable = ClickableLabel("ChibiChat")
+                clickable.setFont(widget.font())
+                clickable.setStyleSheet(widget.styleSheet())
+                clickable.setAlignment(widget.alignment())
+                clickable.setCursor(Qt.PointingHandCursor)
+                clickable.clicked.connect(self.go_to_chat_page)
+                parent = widget.parentWidget()
+                layout = parent.layout()
+                index = layout.indexOf(widget)
+                layout.removeWidget(widget)
+                widget.deleteLater()
+                layout.insertWidget(index, clickable)
+                break
 
         self.anime_per_page = 50
         self.current_page = 0
@@ -206,6 +230,11 @@ class AnimeListPage(BaseWindow):
 
         self.content_widget = content_widget
         self.content_layout = content_layout
+
+
+    def go_to_chat_page(self):
+        if self.main_window:
+            self.main_window.open_home_page()
 
     def show_next_page(self):
         print("Next button clicked — current page:", self.current_page)
@@ -543,3 +572,4 @@ if __name__ == "__main__":
     win.setGeometry(rect)
 
     sys.exit(app.exec_())
+    
