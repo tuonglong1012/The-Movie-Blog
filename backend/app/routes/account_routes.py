@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..database import get_db
 from ..schemas.account_schemas import UserCreate, UserOut, UserLogin, ChangeUserPassword
-from ..controllers.account_controller import create_user, get_user, approve_user, update_role, delete_user, login_user, change_password
+from ..controllers.account_controller import create_user, get_user, banned_user,unlock_user, update_role, delete_user, login_user, change_password
 import requests
 from typing import List
 
@@ -19,9 +19,13 @@ def get_list_user(db: Session = Depends(get_db)):
     return get_user(db)
 
 
-@router.post("/user/approve/{user_id}", response_model=UserOut)
-def approve(user_id: int, db: Session = Depends(get_db)):
-    return approve_user(user_id, db)
+@router.post("/user/banned/{user_id}", response_model=UserOut)
+def banned(user_id: int, db: Session = Depends(get_db)):
+    return banned_user(user_id, db)
+
+@router.post("/user/unlock/{user_id}", response_model=UserOut)
+def unlock(user_id: int, db: Session = Depends(get_db)):
+    return unlock_user(user_id, db)
 
 
 @router.put("/user/{user_id}/role/{new_role}", response_model=UserOut)
