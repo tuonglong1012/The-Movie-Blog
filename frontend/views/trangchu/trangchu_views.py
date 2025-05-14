@@ -170,22 +170,20 @@ class AnimeListPage(BaseWindow):
         self.setWindowTitle("Anime List")
         self.showMaximized()
 
-        for widget in self.findChildren(QLabel):
-            if widget.text() == "ChibiChat":
-                clickable = ClickableLabel("ChibiChat")
-                clickable.setFont(widget.font())
-                clickable.setStyleSheet(widget.styleSheet())
-                clickable.setAlignment(widget.alignment())
-                clickable.setCursor(Qt.PointingHandCursor)
-                clickable.clicked.connect(self.return_to_chat)
+        self.chat_window = chat_window
+        self.setWindowTitle("Anime List")
+        self.showMaximized()
 
-                parent = widget.parentWidget()
-                layout = parent.layout()
-                index = layout.indexOf(widget)
-                layout.removeWidget(widget)
-                widget.deleteLater()
-                layout.insertWidget(index, clickable)
-                break
+        self.anime_per_page = 50
+        self.current_page = 0
+        self.full_anime_data = [
+            {
+                "rank": i + 1,
+                "title": f"Anime Title {i + 1}",
+                "info": f"TV ({12 + i % 5} eps)\n2022 - 2023\n{1_000_000 + i * 12345} members",
+                "score": f"{9.5 - (i * 0.03):.2f}"
+            } for i in range(100)
+        ]
 
         content_widget = QWidget()
         content_widget.setFixedWidth(1000)
@@ -193,18 +191,42 @@ class AnimeListPage(BaseWindow):
         content_layout.setContentsMargins(20, 80, 20, 20)
         content_layout.setSpacing(2)
 
-        heading = QLabel("Top Anime List")
+        heading = QLabel("Top Movie Series")
         heading.setFont(QFont("Arial", 18, QFont.Bold))
-        heading.setAlignment(Qt.AlignCenter)
+        heading.setAlignment(Qt.AlignLeft)
 
         content_layout.addWidget(heading)
         content_layout.addWidget(self.create_anime_list_widget())
 
-        centered_layout = QHBoxLayout()
-        centered_layout.addStretch(1)
-        centered_layout.addWidget(content_widget, 6)
-        centered_layout.addStretch(1)
-        self.main_layout.addLayout(centered_layout)
+        self.centered_layout = QHBoxLayout()
+        self.centered_layout.addStretch(1)
+        self.centered_layout.addWidget(content_widget, 6)
+        self.centered_layout.addStretch(1)
+        self.main_layout.addLayout(self.centered_layout)
+
+        self.content_widget = content_widget
+        self.content_layout = content_layout
+
+    def show_next_page(self):
+        print("Next button clicked — current page:", self.current_page)
+        if (self.current_page + 1) * self.anime_per_page < len(self.full_anime_data):
+            self.current_page += 1
+            self.refresh_anime_list()
+
+    def show_prev_page(self):
+        if self.current_page > 0:
+            self.current_page -= 1
+            self.refresh_anime_list()
+
+    def refresh_anime_list(self):
+        print("Refreshing anime list...")
+
+        old_scroll = self.content_layout.itemAt(1).widget()
+        self.content_layout.removeWidget(old_scroll)
+        old_scroll.deleteLater()
+
+        new_scroll = self.create_anime_list_widget()
+        self.content_layout.insertWidget(1, new_scroll)
 
     def create_vertical_line(self):
         return VerticalLine()
@@ -244,17 +266,32 @@ class AnimeListPage(BaseWindow):
 
         layout.addWidget(self.create_header_row())
 
-        anime_data = [
-            {
-                "rank": i + 1,
-                "title": f"Anime Title {i + 1}",
-                "info": f"TV ({12 + i % 5} eps)\n2022 - 2023\n{1_000_000 + i * 12345} members",
-                "score": f"{9.5 - (i * 0.1):.2f}"
-            } for i in range(20)
-        ]
+        start = self.current_page * self.anime_per_page
+        end = start + self.anime_per_page
+        anime_data = self.full_anime_data[start:end]
 
         for i, anime in enumerate(anime_data):
-            layout.addWidget(self.create_data_row(anime, i))
+            layout.addWidget(self.create_data_row(anime, start + i))
+
+        # Navigation buttons
+        nav_row = QHBoxLayout()
+        nav_row.setContentsMargins(0, 10, 0, 0)
+
+        prev_btn = QPushButton("← Previous")
+        next_btn = QPushButton("Next →")
+
+        prev_btn.setEnabled(self.current_page > 0)
+        next_btn.setEnabled(end < len(self.full_anime_data))
+
+        prev_btn.clicked.connect(self.show_prev_page)
+        next_btn.clicked.connect(self.show_next_page)
+
+        nav_row.addStretch()
+        nav_row.addWidget(prev_btn)
+        nav_row.addWidget(next_btn)
+        nav_row.addStretch()
+
+        layout.addLayout(nav_row)
 
         scroll_area.setWidget(container)
         return scroll_area
@@ -330,7 +367,7 @@ class AnimeListPage(BaseWindow):
         title_label.setWordWrap(True)
         title_label.setCursor(Qt.PointingHandCursor)
 
-        # Tooltip logic
+        # Tooltip (chú thích)
         tooltip_info = f"""<b>Genres:</b> Adventure, Drama<br>
         <b>Status:</b> Finished Airing<br>
         <b>Type:</b> TV<br>
@@ -343,7 +380,6 @@ class AnimeListPage(BaseWindow):
         title_label.installEventFilter(self)
         title_label._tooltip_widget = tooltip
 
-        # OPEN DETAIL WINDOW ON CLICK
         self.detail_windows = getattr(self, 'detail_windows', [])
 
         def show_detail_window():
