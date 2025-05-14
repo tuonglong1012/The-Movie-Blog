@@ -25,7 +25,7 @@ def create_user(user: UserCreate, db: Session):
         username=user.username,
         date_of_birth=datetime.datetime.strptime(user.date_of_birth, "%Y-%m-%d").date(),
         password=user.password,
-        status=False,  # mặc định
+        status=True,  # mặc định
         role=0,  # mặc định
     )
     db.add(new_user)
