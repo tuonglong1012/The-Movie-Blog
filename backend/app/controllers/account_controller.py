@@ -38,7 +38,7 @@ def get_user(db: Session):
     return db.query(UserModel).all()
 
 
-def approve_user(user_id: int, db: Session):
+def banned_user(user_id: int, db: Session):
     user = db.query(UserModel).filter(UserModel.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -47,6 +47,14 @@ def approve_user(user_id: int, db: Session):
     db.refresh(user)
     return user
 
+def unlock_user(user_id: int, db: Session):
+    user = db.query(UserModel).filter(UserModel.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.status = True
+    db.commit()
+    db.refresh(user)
+    return user
 
 def update_role(user_id: int, new_role: int, db: Session):
     user = db.query(UserModel).filter(UserModel.id == user_id).first()
