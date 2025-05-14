@@ -19,7 +19,7 @@ def get_list_user(db: Session = Depends(get_db)):
     return get_user(db)
 
 
-@router.post("/user/approve/{user_id}", response_model=UserOut)
+@router.post("/user/banned/{user_id}", response_model=UserOut)
 def approve(user_id: int, db: Session = Depends(get_db)):
     return approve_user(user_id, db)
 
