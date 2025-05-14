@@ -23,7 +23,7 @@ def create_user(user: UserCreate, db: Session):
     # Create new user
     new_user = UserModel(
         username=user.username,
-        date_of_birth=datetime.datetime.strptime(user.date_of_birth, "%d-%m-%Y").date(),
+        date_of_birth=datetime.datetime.strptime(user.date_of_birth, "%Y-%m-%d").date(),
         password=user.password,
         status=False,  # mặc định
         role=0,  # mặc định
