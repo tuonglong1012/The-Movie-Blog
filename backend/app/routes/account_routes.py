@@ -20,11 +20,11 @@ def get_list_user(db: Session = Depends(get_db)):
 
 
 @router.post("/user/banned/{user_id}", response_model=UserOut)
-def approve(user_id: int, db: Session = Depends(get_db)):
+def banned(user_id: int, db: Session = Depends(get_db)):
     return banned_user(user_id, db)
 
 @router.post("/user/unlock/{user_id}", response_model=UserOut)
-def approve(user_id: int, db: Session = Depends(get_db)):
+def unlock(user_id: int, db: Session = Depends(get_db)):
     return unlock_user(user_id, db)
 
 
