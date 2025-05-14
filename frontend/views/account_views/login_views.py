@@ -62,9 +62,15 @@ class LoginDialog(QDialog):
         if "error" in result:
             QMessageBox.critical(self, "Login Failed", result["error"])
         else:
+            self.user_info = result  # ✅ Lưu lại thông tin user để các phần khác dùng
             QMessageBox.information(self, "Login Successful", f"Welcome, {result['username']}!")
             self.accept()
+
 
     def _to_signup(self):
         self.accept()
         self.parent().open_signup_dialog()
+
+    def get_user_info(self):
+        return self.user_info
+

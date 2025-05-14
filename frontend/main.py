@@ -1,8 +1,8 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QStackedWidget
-from frontend.views.account_views.login_views import LoginDialog
-from frontend.views.account_views.signup_views import SignUpDialog
-from frontend.views.trangchu.trangchu_views import AnimeListPage  
+from views.account_views.login_views import LoginDialog
+from views.account_views.signup_views import SignUpDialog
+from views.trangchu.trangchu_views import AnimeListPage  
 
 
 class MainWindow(QMainWindow):
@@ -37,6 +37,18 @@ class MainWindow(QMainWindow):
 
     def open_login_dialog(self):
         self.show_login_dialog()
+    
+
+    def show_login_dialog(self):
+        login_dialog = LoginDialog(self)
+        if login_dialog.exec_() == login_dialog.Accepted:
+            self.user_info = login_dialog.get_user_info()  # Lấy user_info từ dialog
+            QMessageBox.information(self, "Success", "Logged in successfully!")
+            self.open_home_page()
+        else:
+            self.close()
+    
+
 
 
 if __name__ == '__main__':

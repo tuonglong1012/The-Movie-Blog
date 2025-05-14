@@ -161,9 +161,9 @@ class AddAnimeDialog(QDialog):
         }
 
 class AnimeListPage(BaseWindow):
-    def __init__(self, chat_window=None):
+    def __init__(self, parent=None, chat_window=None):
         super().__init__(
-            user_info=chat_window.user_info if chat_window else None,
+            user_info=parent.user_info if parent else None,
             avatar_pixmap=chat_window.avatar_pixmap if chat_window else None
         )
         self.chat_window = chat_window
