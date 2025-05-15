@@ -29,7 +29,7 @@ class BaseWindow(QMainWindow):
         hdr_lay = QHBoxLayout(header)
         hdr_lay.setContentsMargins(20, 10, 20, 10)
 
-        proj_lbl = QLabel("ChibiChat")
+        proj_lbl = QLabel("The Community Movie")
         proj_lbl.setFont(QFont("Matura MT Script Capitals", 20, QFont.Bold))
         proj_lbl.setStyleSheet("color: #000; background-color:  #B0E0E6; border-radius: 15px; margin-right: 2px")
         hdr_lay.addWidget(proj_lbl, alignment=Qt.AlignLeft)

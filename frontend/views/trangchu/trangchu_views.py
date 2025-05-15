@@ -168,7 +168,7 @@ class AnimeListPage(BaseWindow):
             avatar_pixmap=chat_window.avatar_pixmap if chat_window else None
         )
 
-        chibi_label = ClickableLabel("ChibiChat")
+        chibi_label = ClickableLabel("The Community Movie")
         chibi_label.setFont(QFont("Matura MT Script Capitals", 20, QFont.Bold))
         chibi_label.setStyleSheet("color: #000; background-color:  #B0E0E6; border-radius: 15px; margin-right: 2px")
         chibi_label.clicked.connect(self.return_to_chat)
