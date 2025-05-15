@@ -200,14 +200,15 @@ class AnimeListPage(BaseWindow):
 
         self.anime_per_page = 50
         self.current_page = 0
-        self.full_anime_data = [
+        self.full_anime_data = sorted([
             {
-                "rank": i + 1,
-                "title": f"Anime Title {i + 1}",
-                "info": f"TV ({12 + i % 5} eps)\n2022 - 2023\n{1_000_000 + i * 12345} members",
-                "score": f"{9.5 - (i * 0.03):.2f}"
-            } for i in range(100)
-        ]
+                "rank": movie.get("rank", i + 1),
+                "title": movie.get("title", "No title"),
+                "info": f"{movie.get('type', '')} ({movie.get('episodes', '?')} eps)\n{movie.get('aired', '')}\n{movie.get('members', '')} members",
+                "score": f"{movie.get('score', 0):.2f}"
+            } for i, movie in enumerate(movies)
+        ], key=lambda x: x["rank"])
+
 
         content_widget = QWidget()
         content_widget.setFixedWidth(1000)
