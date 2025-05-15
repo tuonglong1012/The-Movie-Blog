@@ -15,10 +15,8 @@ from frontend.views.admin.ad_phim_logic import AdminPhim
 from frontend.views.admin.ad_trangchu import Ui_ad_trangchu
 from frontend.views.admin.ad_themsuachitietphim_logic import AdminManagerFilm
 class AdminTrangChu(QMainWindow):
-    def __init__(self,main_window=None,chat_window=None):
-        super().__init__(
-            user_info=main_window.user_info if main_window else None,
-            avatar_pixmap=chat_window.avatar_pixmap if chat_window else None)
+    def __init__(self):
+        super().__init__()
         self.ui = Ui_ad_trangchu()
         self.ui.setupUi(self)
 
@@ -244,10 +242,10 @@ class AdminTrangChu(QMainWindow):
         
         
 
-# if __name__ == "__main__":
-#     import sys
-#     app = QApplication(sys.argv)
-#     window = AdminTrangChu()
-#     window.show()
-#     sys.exit(app.exec())
+if __name__ == "__main__":
+    import sys
+    app = QApplication(sys.argv)
+    window = AdminTrangChu()
+    window.show()
+    sys.exit(app.exec())
 
