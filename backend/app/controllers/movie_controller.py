@@ -176,8 +176,7 @@ def clean_status(status_raw):
 # Import json vào database
 def import_movies(db: Session = Depends(get_db)):
     current_dir = os.path.dirname(__file__)
-    json_path = os.path.abspath(os.path.join(current_dir, "../../data/data.json"))
-
+    json_path = os.path.abspath(os.path.join(current_dir, "..", "..", "..", "data", "data.json"))    
     try:
         with open(json_path, "r", encoding="UTF-8") as f:
             movies_data = json.load(f)
